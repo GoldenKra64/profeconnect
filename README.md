@@ -1,23 +1,9 @@
+## AmigojoLive: Red Pedagógica para Docentes
 
-Aquí tienes el contenido estructurado y listo para copiar en tu archivo README.md de GitHub. He integrado los detalles técnicos de tu proyecto, los objetivos académicos y la información de los archivos adjuntos para que el repositorio se vea profesional y completo.
-
-AmigojoLive: Red Pedagógica para Docentes
-1. Descripción del Proyecto
+## 1. Descripción del Proyecto
 AmigojoLive es una plataforma colaborativa diseñada como un espacio seguro y exclusivo para los docentes de la red educativa Fe y Alegría. El objetivo principal es permitir que los profesores compartan recursos pedagógicos, experiencias de aula, consejos y frustraciones de manera profesional o anónima, fomentando el aprendizaje entre pares y el crecimiento comunitario.
-+2
 
-2. Equipo de Desarrollo (Grupo 2)
-Francisco Miguez
-
-Stephano Zapata
-
-Luis Alobuela
-
-Gabriel Vásconez
-
-Angel Jhosue Fonseca Acosta
-
-3. Stack Tecnológico
+## 2. Stack Tecnológico
 Para la construcción del Prototipo 1, se ha definido el siguiente conjunto de tecnologías:
 
 Frontend: Web responsiva (accesible desde móviles sin instalación).
@@ -26,26 +12,20 @@ Backend: Framework robusto para gestión de APIs (ej. .NET Core o Node.js).
 
 Base de Datos: PostgreSQL, seleccionada por su eficiencia y escalabilidad para el manejo de contenidos.
 
-
 Inteligencia Artificial: Implementación del modelo DeepSeek-v4-flash para la clasificación inteligente de publicaciones y generación de métricas de valor pedagógico.
-+1
 
 Infraestructura: Despliegue en producción mediante servicios como Vercel, Render o Railway.
 
-4. Definición de Pantallas del Prototipo
+## 3. Definición de Pantallas del Prototipo
 El prototipo inicial se centra en tres flujos principales:
 
-
 Pantalla de Entrada de Datos: Interfaz intuitiva donde el docente redacta su publicación (título, cuerpo, resumen), selecciona categorías (Matemáticas, Pedagogía, Recursos Didácticos) y adjunta archivos como PDFs o imágenes.
-+2
-
 
 Pantalla de Resultado/Acción (Feed): Muro de la comunidad donde se visualizan los artículos publicados, permitiendo filtrar por etiquetas y nivel de utilidad percibida por otros colegas.
 
-
 Pantalla de Confirmación: Validación visual que indica al docente que su aporte ha sido publicado con éxito en la red.
 
-5. Endpoints de la API
+## 4. Endpoints de la API
 Se han definido las siguientes rutas base para la interacción del sistema:
 
 POST /api/auth/login: Gestión de acceso para docentes y directivos.
@@ -58,7 +38,7 @@ GET /api/resources/download: Acceso a guías de estudio y materiales adjuntos.
 
 POST /api/ai/classify: Endpoint que utiliza DeepSeek para categorizar automáticamente el contenido y sugerir etiquetas.
 
-6. Plan de Pruebas
+## 5. Plan de Pruebas
 Para garantizar la calidad del software, se ejecutarán tres niveles de testing:
 
 Caja Blanca: Verificación de la lógica interna del código y cumplimiento de políticas de seguridad.
