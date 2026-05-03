@@ -46,6 +46,9 @@ model User {
 
   teacherProfile     TeacherProfile?
 
+  posts              Post[]
+  comments           Comment[]
+
   lastLoginAt        DateTime?
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
@@ -66,4 +69,52 @@ model TeacherProfile {
   updatedAt   DateTime @updatedAt
 
   @@map("perfiles_docente")
+}
+
+model Post {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String   @db.Text 
+  isAnonymous Boolean  @default(false) // Para aplicar anonimato en los post si el usuario lo desea
+
+  // Relación 1:N con Usuario
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+
+  // Relaciones
+  comments    Comment[]
+  tags        Tag[]    // Relación Muchos a Muchos para etiquetar los post
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("publicaciones")
+}
+
+model Comment {
+  id          Int      @id @default(autoincrement())
+  content     String   @db.Text
+  isAnonymous Boolean  @default(false) // Para aplicar anonimato en los comentarios si el usuario lo desea
+
+  // Relación con el Post al que pertenece
+  postId      Int
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // Relación con el Usuario que comenta
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("comentarios")
+}
+
+model Tag {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // Las diferentes etiquetas, que todavia esta por definir
+  
+  posts       Post[]   // Relación Muchos a Muchos para etiquetar los post
+
+  @@map("etiquetas")
 }
