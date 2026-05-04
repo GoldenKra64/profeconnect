@@ -1,14 +1,19 @@
 require("dotenv/config");
+
 const bcrypt = require("bcryptjs");
-
-// Opción A: si tu schema.prisma usa provider = "prisma-client-js"
 const { PrismaClient } = require("@prisma/client");
+const { PrismaPg } = require("@prisma/adapter-pg");
 
-// Opción B: si tu schema.prisma usa provider = "prisma-client" con output = "../src/generated/prisma"
-// comenta la línea anterior y usa esta:
-// const { PrismaClient } = require("../src/generated/prisma");
+const adapter = new PrismaPg({
+  connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  adapter,
+});
 
 async function main() {
   console.log("Iniciando seed inicial...");
@@ -51,35 +56,27 @@ async function main() {
     throw new Error("No se pudo encontrar el rol admin.");
   }
 
-  const adminEmail =
-    process.env.ADMIN_EMAIL || "admin@institucion.edu.ec";
-
-  const adminPassword =
-    process.env.ADMIN_PASSWORD || "Admin123456";
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@institucion.edu.ec";
+  const adminPassword = process.env.ADMIN_PASSWORD || "Admin123456";
 
   const passwordHash = await bcrypt.hash(adminPassword, 10);
 
   const adminUser = await prisma.user.upsert({
     where: {
-      institutionalEmail: adminEmail,
+      institutionalEmail: adminEmail.toLowerCase(),
     },
     update: {
+      passwordHash,
       roleId: adminRole.id,
       status: "ACTIVO",
     },
     create: {
-      institutionalEmail: adminEmail,
+      institutionalEmail: adminEmail.toLowerCase(),
       passwordHash,
       firstName: "Administrador",
       lastName: "Sistema",
       status: "ACTIVO",
       roleId: adminRole.id,
-      teacherProfile: {
-        create: {
-          area: "Administración",
-          description: "Usuario administrador inicial del sistema",
-        },
-      },
     },
   });
 
