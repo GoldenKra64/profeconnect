@@ -109,7 +109,7 @@ npm install
 4. Ejecutar migraciones:
 
 ```bash
-npx prisma migrate dev
+npx prisma generate
 ```
 
 5. Iniciar el servidor:
@@ -161,15 +161,5 @@ npm test
 * Prisma se utiliza como ORM principal
 * El proyecto está preparado para escalar mediante nuevos módulos
 * Las rutas deben mantenerse delgadas (sin lógica de negocio)
-
----
-
-## Instalación
-
-```
-npm install && npx prisma generate
-```
-
-Esto permitirá cargar los paquetes y node_modules. Además de crear el cliente de prisma
-
+* 
 ---
