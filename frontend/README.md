@@ -124,6 +124,13 @@ Base URL: `${VITE_API_URL}` (default `http://localhost:3000/api/v1`).
 - `docente`: puede acceder a su perfil y al dashboard.
 - `moderador`: por ahora con permisos equivalentes al docente; se ampliará cuando el backend exponga moderación.
 
-## Próximos pasos (no incluidos)
+## Imagenes
 
-Las vistas de **Blog/Posts**, **Comentarios**, **Etiquetas** y **Recursos** se construirán cuando el backend exponga sus endpoints (los modelos ya existen en `backend/prisma/schema.prisma`).
+Login
+![Login](docs/login.png)
+
+Register
+![Register](docs/register.png)
+
+Panel
+![Panel](docs/panel.png)
