@@ -3,3 +3,6 @@ node_modules
 .env
 
 /src/generated/prisma
+.vs
+
+prisma.config.ts
