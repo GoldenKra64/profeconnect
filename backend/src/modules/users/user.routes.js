@@ -1,5 +1,10 @@
 const express = require("express");
 const userController = require("./user.controller");
+
+const { userIdParamDto, updateUserStatusDto } = require("./user.dto");
+
+// Middlewares
+const validateDto = require("../../middlewares/validate.middleware");
 const authMiddleware = require("../../middlewares/auth.middleware");
 const requireRole = require("../../middlewares/role.middleware");
 
@@ -16,6 +21,8 @@ router.patch(
   "/:id/status",
   authMiddleware,
   requireRole("admin"),
+  validateDto(userIdParamDto, "params"),
+  validateDto(updateUserStatusDto, "body"),
   userController.updateUserStatus
 );
 

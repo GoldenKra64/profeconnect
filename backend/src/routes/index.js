@@ -6,6 +6,8 @@ const userRoutes = require("../modules/users/user.routes");
 const profileRoutes = require("../modules/profiles/profile.routes");
 const chatbotRoutes = require("../modules/chatbot/chatbot.routes");
 
+const categoryRoutes = require("../modules/category/category.routes");
+
 const router = express.Router();
 
 router.get("/health", (req, res) => {
@@ -22,5 +24,8 @@ router.use("/profiles", profileRoutes);
 
 // Chatbot
 router.use("/chatbot", chatbotRoutes);
+
+// Posts
+router.use("/categories", categoryRoutes);
 
 module.exports = router;

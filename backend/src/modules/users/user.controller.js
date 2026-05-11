@@ -1,13 +1,17 @@
 const userService = require("./user.service");
+const { ApiResponse } = require("../../config/api.response");
 
 async function getUsers(req, res, next) {
   try {
     const users = await userService.getUsers();
 
-    return res.status(200).json({
-      message: "Usuarios obtenidos correctamente",
-      data: users,
-    });
+    if (!users) {
+      const err = new Error("No se encontraron usuarios");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    return res.status(200).json(new ApiResponse(true, 200, "Usuarios obtenidos correctamente", users));
   } catch (error) {
     next(error);
   }
@@ -20,10 +24,7 @@ async function updateUserStatus(req, res, next) {
       req.body.status
     );
 
-    return res.status(200).json({
-      message: "Estado de usuario actualizado correctamente",
-      data: user,
-    });
+    return res.status(200).json(new ApiResponse(true, 200, "Estado de usuario actualizado correctamente", user));
   } catch (error) {
     next(error);
   }

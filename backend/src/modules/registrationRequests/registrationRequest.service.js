@@ -1,5 +1,8 @@
 const prisma = require("../../lib/prisma");
 
+/***
+ * Obtener todas las solicitudes de registro pendientes por aprobar -- SOLO MODERADOR
+ */
 async function getRegistrationRequests(status) {
   const where = {};
 
@@ -40,6 +43,9 @@ async function getRegistrationRequests(status) {
   }));
 }
 
+/***
+ * Aprobar solicitud de registro -- SOLO MODERADOR
+ */
 async function approveRegistrationRequest(requestId, adminUserId) {
   const id = Number(requestId);
 
@@ -139,6 +145,9 @@ async function approveRegistrationRequest(requestId, adminUserId) {
   });
 }
 
+/***
+ * Eliminar solicitud de registro -- SOLO MODERADOR
+ */
 async function rejectRegistrationRequest(requestId, adminUserId, reviewComment) {
   const id = Number(requestId);
 

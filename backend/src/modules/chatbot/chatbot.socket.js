@@ -3,6 +3,9 @@ const { sendChat, sendChatStream } = require("./chatbot.service");
 function setupChatbotSocket(io) {
     const chatNamespace = io.of("/chatbot");
 
+    /**
+     * Evento de conexión del socket al chatbot de IA
+     */
     chatNamespace.on("connection", (socket) => {
         console.log(`Cliente conectado al chatbot: ${socket.id}`);
 
@@ -23,6 +26,9 @@ function setupChatbotSocket(io) {
             }
         });
 
+        /**
+        * Stream de mensajes del socket al chatbot de IA
+        */
         socket.on("chat:stream", async (data) => {
             const { messages } = data;
 
@@ -42,6 +48,9 @@ function setupChatbotSocket(io) {
             }
         });
 
+        /**
+        * Disconnect del socket al chatbot de IA
+        */
         socket.on("disconnect", () => {
             console.log(`Cliente desconectado del chatbot: ${socket.id}`);
         });

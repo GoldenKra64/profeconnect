@@ -1,20 +1,23 @@
 const { getResponse } = require("./chatbot.service");
+const { ApiResponse } = require("../../config/api.response");
 
 async function getResponseController(req, res) {
     const { prompt } = req.body;
 
-    if (!prompt) {
-        const error = new Error("Falta el parámetro 'prompt'");
-        error.statusCode = 400;
-        throw error;
+    if (!prompt.trim() || prompt.trim().length === 0) {
+        const err = new Error("Falta el parámetro prompt");
+        err.statusCode = 400;
+        throw err;
     }
 
     try {
-        const response = await getResponse(prompt);
-        res.json({ response });
+        const botResponse = await getResponse(prompt);
+        const response = new ApiResponse(true, 200, "Respuesta obtenida correctamente", botResponse);
+
+        console.log(response);
+        res.json(response);
     } catch (err) {
-        console.log(err);
-        res.status(err.statusCode || 500).json({ error: err.message });
+        next(err);
     }
 }
 

@@ -1,3 +1,8 @@
+const { ApiResponse } = require("../config/api.response");
+
+/**
+ * Middleware para manejar errores generales || 500
+ */
 function errorMiddleware(error, req, res, next) {
   console.error(error);
 
@@ -11,12 +16,12 @@ function errorMiddleware(error, req, res, next) {
     /timeout|timed out/i.test(String(message))
   ) {
     message =
-      "No se pudo conectar a la base de datos. Compruebe DIRECT_URL (puerto 5432), firewall, IPv6/IPv4 y que el proyecto en Supabase esté activo.";
+      "No se pudo conectar a la base de datos";
   }
 
-  return res.status(statusCode).json({
-    message,
-  });
+  const response = new ApiResponse(false, statusCode, message);
+
+  return res.status(statusCode).json(response);
 }
 
 module.exports = errorMiddleware;

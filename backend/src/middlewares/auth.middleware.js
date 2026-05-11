@@ -1,14 +1,16 @@
 const jwt = require("jsonwebtoken");
 const prisma = require("../lib/prisma");
+const { ApiResponse } = require("../config/api.response");
 
+/**
+ * Middleware para validar token de autenticación
+ */
 async function authMiddleware(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        message: "Token de autenticación requerido",
-      });
+      return res.status(401).json(new ApiResponse(false, 401, "Token de autenticación requerido"));
     }
 
     const token = authHeader.split(" ")[1];
@@ -23,21 +25,15 @@ async function authMiddleware(req, res, next) {
     });
 
     if (!user) {
-      return res.status(401).json({
-        message: "Usuario no encontrado",
-      });
+      return res.status(401).json(new ApiResponse(false, 401, "Usuario no encontrado"));
     }
 
     if (user.status !== "ACTIVO") {
-      return res.status(403).json({
-        message: "Usuario inactivo o bloqueado",
-      });
+      return res.status(403).json(new ApiResponse(false, 403, "Usuario inactivo o bloqueado"));
     }
 
     if (!user.role || !user.role.active) {
-      return res.status(403).json({
-        message: "Rol inactivo o no válido",
-      });
+      return res.status(403).json(new ApiResponse(false, 401, "Rol inválido o inactivo"));
     }
 
     req.user = {
@@ -50,9 +46,7 @@ async function authMiddleware(req, res, next) {
 
     next();
   } catch (error) {
-    return res.status(401).json({
-      message: "Token inválido o expirado",
-    });
+    return res.status(401).json(new ApiResponse(false, 401, "Token inválido o expirado, vuelva a ingresar porfavor"));
   }
 }
 

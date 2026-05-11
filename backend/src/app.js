@@ -11,10 +11,11 @@ app.use(express.json());
 
 app.use("/api/v1", routes);
 
-app.get("/", (req, res) => {
+app.get("/", (req, res, next) => {
   res.json({
     message: "API AmigojoLive funcionando correctamente",
   });
+  next();
 });
 
 app.use(errorMiddleware);

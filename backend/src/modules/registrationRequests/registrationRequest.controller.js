@@ -1,4 +1,5 @@
 const registrationRequestService = require("./registrationRequest.service");
+const { ApiResponse } = require("../../config/api.response");
 
 async function getRegistrationRequests(req, res, next) {
   try {
@@ -6,10 +7,9 @@ async function getRegistrationRequests(req, res, next) {
 
     const requests = await registrationRequestService.getRegistrationRequests(status);
 
-    return res.status(200).json({
-      message: "Solicitudes de registro obtenidas correctamente",
-      data: requests,
-    });
+    const apiResponse = new ApiResponse(true, 200, "Solicitudes de registro obtenidas correctamente", requests);
+
+    return res.status(200).json(apiResponse);
   } catch (error) {
     next(error);
   }
@@ -22,10 +22,9 @@ async function approveRegistrationRequest(req, res, next) {
       req.user.id
     );
 
-    return res.status(200).json({
-      message: "Solicitud aprobada y usuario docente creado correctamente",
-      data: user,
-    });
+    const apiResponse = new ApiResponse(true, 200, "Solicitud aprobada y usuario docente creado correctamente", user);
+
+    return res.status(200).json(apiResponse);
   } catch (error) {
     next(error);
   }
@@ -39,10 +38,9 @@ async function rejectRegistrationRequest(req, res, next) {
       req.body.reviewComment
     );
 
-    return res.status(200).json({
-      message: "Solicitud rechazada correctamente",
-      data: request,
-    });
+    const apiResponse = new ApiResponse(true, 204, "Solicitud rechazada correctamente");
+
+    return res.status(204).json(apiResponse);
   } catch (error) {
     next(error);
   }
