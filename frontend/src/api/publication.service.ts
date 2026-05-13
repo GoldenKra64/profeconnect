@@ -2,6 +2,7 @@ import { apiClient } from './client';
 import type {
   ApiResponse,
   Publication,
+  Comment,
 } from '../types';
 
 export async function getPublications(): Promise<Publication[]> {
@@ -26,4 +27,19 @@ export async function createPublication(
 
 export async function deletePublication(id: number): Promise<void> {
   await apiClient.delete(`/publications/${id}`);
+}
+
+export async function addComment(
+  postId: number,
+  content: string
+): Promise<Comment> {
+  const response = await apiClient.post<ApiResponse<Comment>>(
+    `/publications/${postId}/comments`,
+    { content }
+  );
+  return response.data.data;
+}
+
+export async function deleteComment(commentId: number): Promise<void> {
+  await apiClient.delete(`/comments/${commentId}`);
 }

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { deletePublication } from '../api/publication.service';
+import { deletePublication, addComment, deleteComment } from '../api/publication.service';
 import { useToast } from './Toast';
-import type { Publication } from '../types';
+import type { Publication, Comment } from '../types';
 
 interface PublicationCardProps {
   pub: Publication;
@@ -11,6 +11,8 @@ interface PublicationCardProps {
 
 export default function PublicationCard({ pub, onDelete }: PublicationCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [commentContent, setCommentContent] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const { user } = useAuth();
   const { success, error } = useToast();
   const canDelete = user?.role === 'admin' || user?.id === pub.author.id;
@@ -25,6 +27,37 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
       onDelete?.();
     } catch (err) {
       error('Error al eliminar la publicación.');
+      console.error(err);
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentContent.trim()) return;
+
+    setIsSubmittingComment(true);
+    try {
+      await addComment(pub.id, commentContent.trim());
+      setCommentContent('');
+      success('Comentario añadido.');
+      onDelete?.(); // Refrescar para ver el nuevo comentario
+    } catch (err) {
+      error('Error al añadir comentario.');
+      console.error(err);
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!window.confirm('¿Borrar comentario?')) return;
+
+    try {
+      await deleteComment(commentId);
+      success('Comentario eliminado.');
+      onDelete?.();
+    } catch (err) {
+      error('Error al eliminar comentario.');
       console.error(err);
     }
   };
@@ -168,6 +201,60 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
               </div>
             </div>
           )}
+
+          <div className="mt-8 pt-6 border-t border-slate-100">
+            <h4 className="text-sm font-semibold text-slate-900 mb-4">Comentarios</h4>
+            
+            <div className="space-y-4 mb-6">
+              {pub.comments && pub.comments.length > 0 ? (
+                pub.comments.map((comment: Comment) => (
+                  <div key={comment.id} className="ml-4 pl-4 border-l-2 border-slate-100 group">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900">
+                          {comment.author.firstName} {comment.author.lastName}
+                          <span className="ml-2 font-normal text-slate-400">
+                            {new Date(comment.createdAt).toLocaleDateString()}
+                          </span>
+                        </p>
+                        <p className="mt-1 text-sm text-slate-700">{comment.content}</p>
+                      </div>
+                      {(user?.role === 'admin' || user?.id === comment.author.id) && (
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-400 italic">No hay comentarios aún.</p>
+              )}
+            </div>
+
+            <form onSubmit={handleAddComment} className="flex gap-2">
+              <input
+                type="text"
+                value={commentContent}
+                onChange={(e) => setCommentContent(e.target.value)}
+                placeholder="Escribe un comentario..."
+                className="flex-1 rounded-lg border-slate-200 text-sm focus:border-brand-500 focus:ring-brand-500"
+                disabled={isSubmittingComment}
+              />
+              <button
+                type="submit"
+                disabled={isSubmittingComment || !commentContent.trim()}
+                className="inline-flex items-center rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+              >
+                Enviar
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </div>

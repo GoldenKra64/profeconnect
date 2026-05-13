@@ -112,8 +112,8 @@ export default function CreatePublicationModal({
         />
         <Field
           as="textarea"
-          label="Contenido"
-          placeholder="¿Qué quieres compartir hoy?"
+          label="Descripción de la publicación"
+          placeholder="Escribe aquí el contenido de tu publicación..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
           required

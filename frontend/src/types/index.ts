@@ -122,6 +122,14 @@ export interface Publication {
   author: PublicationAuthor;
   tags: any[];
   attachments?: Attachment[];
+  comments?: Comment[];
+}
+
+export interface Comment {
+  id: number;
+  content: string;
+  createdAt: string;
+  author: PublicationAuthor;
 }
 
 export interface CreatePublicationPayload {
