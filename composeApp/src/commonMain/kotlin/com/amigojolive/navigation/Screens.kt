@@ -61,7 +61,7 @@ object TeacherHomeScreen : Screen {
         TeacherHomeContent(
             publicationsViewModel = vm,
             currentUser = user,
-            onNavigateToCreatePost = { navigator.push(CreateEditPublicationScreen()) },
+            onNavigateToCreatePost = { navigator.push(CreatePublicationScreen) },
             onLogout = {
                 deps.authRepo.logout()
                 SessionStore.clear()
@@ -107,6 +107,13 @@ data class CreateEditPublicationScreen(val publicationId: Int? = null) : Screen 
         val user = SessionStore.currentUser.collectAsState().value ?: return
         val vm   = rememberScreenModel { PublicationsViewModel(deps.pubRepo, deps.catRepo, user.id) }
         CreateEditPublicationContent(publicationId, vm)
+    }
+}
+
+object CreatePublicationScreen : Screen {
+    @Composable
+    override fun Content() {
+        CreateEditPublicationScreen().Content()
     }
 }
 
