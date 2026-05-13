@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getPublications, createPublication } from '../api/publication.service';
 import type { Publication } from '../types';
+import PublicationCard from '../components/PublicationCard';
 
 export default function FeedPage() {
   const [publications, setPublications] = useState<Publication[]>([]);
@@ -88,17 +89,7 @@ export default function FeedPage() {
           <p>No hay publicaciones todavía.</p>
         ) : (
           publications.map((pub) => (
-            <div key={pub.id} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-              <h2 className="text-xl font-semibold text-slate-900">{pub.title}</h2>
-              <p className="text-xs text-slate-500 mb-4">
-                Por {pub.author.firstName} {pub.author.lastName} el {new Date(pub.createdAt).toLocaleDateString()}
-              </p>
-              {/* INTENCIONALMENTE VULNERABLE: Uso de dangerouslySetInnerHTML para PoC de XSS */}
-              <div
-                className="text-slate-700"
-                dangerouslySetInnerHTML={{ __html: pub.content }}
-              />
-            </div>
+            <PublicationCard key={pub.id} pub={pub} />
           ))
         )}
       </div>
