@@ -169,7 +169,7 @@ async function updatePublication(id, userId, data) {
   return mapPostToResponse(post);
 }
 
-async function deletePublication(id, userId) {
+async function deletePublication(id, user) {
   const existing = await prisma.post.findUnique({
     where: { id },
   });
@@ -180,7 +180,7 @@ async function deletePublication(id, userId) {
     throw error;
   }
 
-  if (existing.authorId !== userId) {
+  if (existing.authorId !== user.id && user.role !== 'admin') {
     const error = new Error("No tienes permiso para eliminar esta publicación");
     error.statusCode = 403;
     throw error;

@@ -13,7 +13,7 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
   const [isExpanded, setIsExpanded] = useState(false);
   const { user } = useAuth();
   const { success, error } = useToast();
-  const isAdmin = user?.role === 'admin';
+  const canDelete = user?.role === 'admin' || user?.id === pub.author.id;
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -88,7 +88,7 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
               Autor: {pub.author.firstName} {pub.author.lastName}
               {pub.isAnonymous && <span className="ml-2 text-slate-400 italic">(Anónimo)</span>}
             </p>
-            {isAdmin && (
+            {canDelete && (
               <button
                 onClick={handleDelete}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
