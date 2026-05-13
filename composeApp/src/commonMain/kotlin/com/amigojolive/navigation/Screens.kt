@@ -3,6 +3,8 @@ package com.amigojolive.navigation
 import androidx.compose.runtime.*
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import com.amigojolive.LocalAppDeps
 import com.amigojolive.core.session.SessionStore
 import com.amigojolive.ui.admin.*
@@ -52,13 +54,19 @@ object RegisterScreen : Screen {
 object TeacherHomeScreen : Screen {
     @Composable
     override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
         val deps = LocalAppDeps.current
         val user = SessionStore.currentUser.collectAsState().value ?: return
-        val vm   = rememberScreenModel { HomeViewModel(deps.pubRepo, user) }
-        TeacherHomeContent(vm, user, onLogout = {
-            deps.authRepo.logout()
-            SessionStore.clear()
-        })
+        val vm   = rememberScreenModel { PublicationsViewModel(deps.pubRepo, deps.catRepo, user.id) }
+        TeacherHomeContent(
+            publicationsViewModel = vm,
+            currentUser = user,
+            onNavigateToCreatePost = { navigator.push(CreateEditPublicationScreen()) },
+            onLogout = {
+                deps.authRepo.logout()
+                SessionStore.clear()
+            }
+        )
     }
 }
 

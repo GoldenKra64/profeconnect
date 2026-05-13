@@ -18,6 +18,7 @@ import com.amigojolive.navigation.CreateEditPublicationScreen
 import com.amigojolive.navigation.PublicationDetailScreen
 import com.amigojolive.ui.components.AmigojoSnackbarHost
 import com.amigojolive.ui.components.LoadingOverlay
+import com.amigojolive.ui.components.PublicationList
 
 /** Feed comunitario: todas las publicaciones. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,15 +48,11 @@ fun FeedContent(viewModel: PublicationsViewModel) {
     ) { padding ->
         if (state.loading) { LoadingOverlay(Modifier.padding(padding)); return@Scaffold }
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(state.publications, key = { it.id }) { pub ->
-                PublicationCard(pub, onClick = { navigator.push(PublicationDetailScreen(pub.id)) })
-            }
-        }
+        PublicationList(
+            publications = state.publications,
+            onPublicationClick = { navigator.push(PublicationDetailScreen(it)) },
+            modifier = Modifier.padding(padding)
+        )
     }
 }
 
@@ -85,51 +82,11 @@ fun MyPublicationsContent(viewModel: PublicationsViewModel) {
             }
             return@Scaffold
         }
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(myPubs, key = { it.id }) { pub ->
-                PublicationCard(pub, onClick = { navigator.push(PublicationDetailScreen(pub.id)) })
-            }
-        }
+        PublicationList(
+            publications = myPubs,
+            onPublicationClick = { navigator.push(PublicationDetailScreen(it)) },
+            modifier = Modifier.padding(padding)
+        )
     }
 }
 
-@Composable
-fun PublicationCard(pub: Publication, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(pub.title, style = MaterialTheme.typography.titleMedium, maxLines = 2,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            Spacer(Modifier.height(4.dp))
-            Text(pub.content, style = MaterialTheme.typography.bodySmall, maxLines = 3,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-            if (pub.tags.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    pub.tags.take(3).forEach { tag ->
-                        FilterChip(selected = false, onClick = {}, label = { Text(tag.name) })
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Person, null, modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.width(4.dp))
-                val authorName = if (pub.isAnonymous) "Anónimo"
-                else pub.author?.profile?.fullName ?: pub.author?.role ?: "Docente"
-                Text(authorName, style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    }
-}

@@ -14,7 +14,8 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.amigojolive.domain.model.UserSummary
 import com.amigojolive.navigation.*
 import com.amigojolive.ui.components.LoadingOverlay
-import com.amigojolive.ui.components.SectionCard
+import com.amigojolive.ui.components.PublicationList
+import com.amigojolive.ui.publications.PublicationsViewModel
 
 /**
  * Pantalla de inicio del Panel del Docente.
@@ -23,109 +24,37 @@ import com.amigojolive.ui.components.SectionCard
  * No incluye accesos a /admin/* — la barra de docente está aislada del flujo admin.
  */
 @Composable
-fun TeacherHomeContent(viewModel: HomeViewModel, currentUser: UserSummary, onLogout: () -> Unit = {}) {
+fun TeacherHomeContent(
+    publicationsViewModel: PublicationsViewModel,
+    currentUser: UserSummary,
+    onNavigateToCreatePost: () -> Unit,
+    onLogout: () -> Unit = {}
+) {
     val navigator = LocalNavigator.currentOrThrow
-    val state     by viewModel.state.collectAsState()
+    val state     by publicationsViewModel.state.collectAsState()
 
     if (state.loading) { LoadingOverlay(); return }
 
     TeacherScaffold(
         currentUser = currentUser,
         onLogout = onLogout,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToCreatePost,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = "Añadir")
+            }
+        }
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            item {
-                Text(
-                    "Hola, ${currentUser.profile?.fullName ?: currentUser.email}",
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-                Text(
-                    "Panel del Docente",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StatCard(
-                        modifier = Modifier.weight(1f),
-                        label = "Mis publicaciones",
-                        value = state.totalPublications.toString(),
-                        icon = Icons.Default.Article,
-                    )
-                    StatCard(
-                        modifier = Modifier.weight(1f),
-                        label = "Etiquetas usadas",
-                        value = state.tagDistribution.size.toString(),
-                        icon = Icons.Default.Tag,
-                    )
-                }
-            }
-
-            if (state.tagDistribution.isNotEmpty()) {
-                item {
-                    SectionCard("Distribución por etiqueta") {
-                        state.tagDistribution.entries.take(5).forEach { (tag, count) ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Text(tag, style = MaterialTheme.typography.bodyMedium)
-                                Text("$count pub.", style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary)
-                            }
-                            LinearProgressIndicator(
-                                progress = { count.toFloat() / (state.totalPublications.coerceAtLeast(1)) },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            Spacer(Modifier.height(4.dp))
-                        }
-                    }
-                }
-            }
-
-            item {
-                SectionCard("Accesos rápidos") {
-                    QuickAccessButton(Icons.Default.Add,        "Nueva publicación") { navigator.push(CreateEditPublicationScreen()) }
-                    QuickAccessButton(Icons.Default.Feed,       "Feed comunitario")  { navigator.push(FeedScreen) }
-                    QuickAccessButton(Icons.Default.Folder,     "Mis aportes")       { navigator.push(MyPublicationsScreen) }
-                    QuickAccessButton(Icons.Default.SmartToy,   "Asistente")         { navigator.push(ChatbotScreen) }
-                }
-            }
-        }
+        PublicationList(
+            publications = state.publications,
+            onPublicationClick = { navigator.push(PublicationDetailScreen(it)) }
+        )
     }
 }
 
-@Composable
-private fun StatCard(modifier: Modifier, label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Card(modifier = modifier) {
-        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.height(8.dp))
-            Text(value, style = MaterialTheme.typography.headlineMedium)
-            Text(label, style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
-
-@Composable
-private fun QuickAccessButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
-    TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Icon(icon, contentDescription = null, modifier = Modifier.padding(end = 12.dp))
-            Text(label, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
 
 // ── Scaffold del docente con Bottom Navigation Bar ────────────────────────────
 
@@ -134,6 +63,7 @@ private fun QuickAccessButton(
 fun TeacherScaffold(
     currentUser: UserSummary,
     onLogout: () -> Unit,
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val navigator   = LocalNavigator.currentOrThrow
@@ -162,6 +92,7 @@ fun TeacherScaffold(
                 },
             )
         },
+        floatingActionButton = floatingActionButton,
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
