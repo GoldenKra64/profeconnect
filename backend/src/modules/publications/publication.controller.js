@@ -46,7 +46,7 @@ async function deletePublication(req, res, next) {
   try {
     const result = await publicationService.deletePublication(
       Number(req.params.id),
-      req.user.id
+      req.user
     );
 
     return res.status(200).json(new ApiResponse(true, 200, "Publicación eliminada correctamente", result));
