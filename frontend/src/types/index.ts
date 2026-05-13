@@ -93,6 +93,20 @@ export interface UpdateProfilePayload {
   photoUrl?: string;
 }
 
+export interface Publication {
+  id: number;
+  title: string;
+  content: string;
+  authorId: number;
+  authorName: string;
+  createdAt: string;
+}
+
+export interface CreatePublicationPayload {
+  title: string;
+  content: string;
+}
+
 export interface ApiResponse<T> {
   message: string;
   data: T;

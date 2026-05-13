@@ -7,6 +7,7 @@ import RegisterRequestPage from '../pages/RegisterRequestPage';
 import DashboardPage from '../pages/DashboardPage';
 import ProfilePage from '../pages/ProfilePage';
 import ChatbotPage from '../pages/ChatbotPage';
+import FeedPage from '../pages/FeedPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import AdminRequestsPage from '../pages/AdminRequestsPage';
 import NotFoundPage from '../pages/NotFoundPage';
@@ -23,6 +24,7 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/feed" element={<FeedPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
           <Route path="/chatbot" element={<ChatbotPage />} />
 
