@@ -9,11 +9,21 @@ const chatbotRoutes = require("../modules/chatbot/chatbot.routes");
 const publicationRoutes = require("../modules/publications/publication.routes");
 
 const categoryRoutes = require("../modules/category/category.routes");
+const prisma = require("../lib/prisma");
 
 const router = express.Router();
 
 router.get("/", (req, res) => {
   res.json(new ApiResponse(true, 200, "Backend activo"));
+});
+
+router.get("/health/db", async (req, res, next) => {
+  try {
+    await prisma.$queryRawUnsafe("SELECT 1");
+    res.json(new ApiResponse(true, 200, "PostgreSQL accesible", { ok: true }));
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.use("/auth", authRoutes);

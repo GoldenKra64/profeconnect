@@ -2,9 +2,15 @@ import axios, { AxiosError, type AxiosInstance } from 'axios';
 
 export const TOKEN_STORAGE_KEY = 'amigojolive_token';
 
+const envUrlRaw = (
+  import.meta.env.VITE_API_URL as string | undefined
+)?.trim();
 const baseURL =
-  (import.meta.env.VITE_API_URL as string | undefined) ??
-  'http://localhost:3000/api/v1';
+  envUrlRaw && envUrlRaw.length > 0
+    ? envUrlRaw
+    : import.meta.env.DEV
+      ? '/api/v1'
+      : 'http://localhost:3000/api/v1';
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL,
@@ -63,7 +69,13 @@ export function extractErrorMessage(
       return 'No hay conexión con el API. Verifique VITE_API_URL y que el backend esté ejecutándose en el puerto 3000.';
     }
     const data = error.response?.data as { message?: string } | undefined;
-    if (data?.message) return data.message;
+    if (data?.message) {
+      const msg = data.message.trim();
+      if (msg.includes('Invalid `prisma.') && msg.includes('invocation')) {
+        return 'Error del servidor relacionado con la base de datos. Revise backend/.env y que PostgreSQL esté en ejecución (por ejemplo Docker: docker compose up -d postgres).';
+      }
+      return msg;
+    }
     if (error.message) return error.message;
   }
   if (error instanceof Error && error.message) {
