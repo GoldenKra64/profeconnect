@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { deletePublication, addComment, deleteComment } from '../api/publication.service';
+import { getPublicFilesBaseUrl } from '../api/client';
 import { useToast } from './Toast';
 import type { Publication, Comment } from '../types';
 
@@ -16,6 +17,7 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
   const { user } = useAuth();
   const { success, error } = useToast();
   const canDelete = user?.role === 'admin' || user?.id === pub.author.id;
+  const publicFilesBaseUrl = getPublicFilesBaseUrl();
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -156,22 +158,53 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
               </h4>
               <div className="flex flex-col gap-2">
                 {pub.attachments.map((file) => {
-                  const baseUrl = import.meta.env.VITE_API_URL?.replace("/api/v1", "") || "https://amigojolive-production.up.railway.app";
+                  const isImage = file.type === 'IMAGE';
                   const folder = file.type === "IMAGE" ? "images" : "documents";
-                  const fileUrl = `${baseUrl}/public/${folder}/${file.filename}`;
+                  const fileUrl = `${publicFilesBaseUrl}/public/${folder}/${file.filename}`;
+                  const displayName = file.originalName || file.filename || 'Archivo';
                   
                   return (
-                    <a
+                    <div
                       key={file.id}
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download
-                      className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      className="rounded-xl border border-slate-200 bg-slate-50 p-3"
                     >
-                      <span>📎</span>
-                      {file.originalName || file.filename || 'Archivo'}
-                    </a>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-slate-900">
+                            {displayName}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500">
+                            {isImage ? 'Imagen adjunta' : 'Documento adjunto'}
+                          </p>
+                        </div>
+
+                        <a
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download={displayName}
+                          className="inline-flex shrink-0 items-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+                        >
+                          {isImage ? 'Abrir' : 'Descargar'}
+                        </a>
+                      </div>
+
+                      {isImage && (
+                        <a
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 block overflow-hidden rounded-lg border border-slate-200 bg-white"
+                        >
+                          <img
+                            src={fileUrl}
+                            alt={displayName}
+                            className="max-h-64 w-full object-contain bg-slate-100"
+                            loading="lazy"
+                          />
+                        </a>
+                      )}
+                    </div>
                   );
                 })}
               </div>
