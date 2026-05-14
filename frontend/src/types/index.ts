@@ -109,6 +109,7 @@ export interface Attachment {
   originalName?: string;
   mimeType?: string;
   size?: number;
+  type?: "IMAGE" | "DOCUMENT" | string;
 }
 
 export interface Publication {
