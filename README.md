@@ -45,5 +45,12 @@ Caja Blanca: Verificación de la lógica interna del código y cumplimiento de p
 
 Caja Negra: Evaluación de las respuestas de los endpoints basándose estrictamente en las entradas del usuario.
 
-Pruebas de Carga: Simulación de múltiples usuarios concurrentes para asegurar la estabilidad del servidor en entornos de alta demanda escolar.
+
+## 6. Arranque local (monorepo)
+
+1. **PostgreSQL**: en la raíz del repositorio, `docker compose up -d postgres` (necesita Docker Desktop activo). Usuario/clave/base: `amigo` / `amigo_dev` / `amigojolive`; copiar la cadena de conexión a `backend/.env` desde `backend/.env.example`.
+2. **Migraciones y datos iniciales** (directorio `backend/`): `npx prisma generate`, `npm run prisma:deploy`, `npm run db:seed`.
+3. **API**: `npm run dev` en `backend/` (puerto 3000).
+4. **Web (Vite)**: `npm run dev` en `frontend/` (`VITE_API_URL=http://localhost:3000/api/v1`).
+5. **Cliente Kotlin web** (opcional): en `composeApp/`, `./gradlew jsBrowserDevelopmentRun` (suele servir en el puerto 8080).
 
