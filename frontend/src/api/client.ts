@@ -5,27 +5,24 @@ export const TOKEN_STORAGE_KEY = 'amigojolive_token';
 const envUrlRaw = (
   import.meta.env.VITE_API_URL as string | undefined
 )?.trim();
+
+const PRODUCTION_API_URL = 'https://amigojolive-production.up.railway.app/api/v1';
+
 const baseURL =
   envUrlRaw && envUrlRaw.length > 0
     ? envUrlRaw
     : import.meta.env.DEV
       ? '/api/v1'
-      : 'http://localhost:3000/api/v1';
+      : PRODUCTION_API_URL;
 
 export function getPublicFilesBaseUrl(): string {
   if (envUrlRaw && envUrlRaw.length > 0) {
     return envUrlRaw.replace(/\/api\/v1\/?$/, '');
   }
-
   if (import.meta.env.DEV) {
     return '';
   }
-
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-
-  return 'http://localhost:3000';
+  return PRODUCTION_API_URL.replace(/\/api\/v1\/?$/, '');
 }
 
 export const apiClient: AxiosInstance = axios.create({
