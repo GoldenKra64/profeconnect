@@ -11,10 +11,10 @@ fs.mkdirSync(documentPath, { recursive: true });
 const storage = multer.diskStorage({
 
   destination(req, file, cb) {
-    if (file.mimetype === "application/pdf") {
-      return cb(null, documentPath);
+    if (file.mimetype.startsWith("image/")) {
+      return cb(null, imagePath);
     }
-    cb(null, imagePath);
+    cb(null, documentPath);
   },
 
   filename(req, file, cb) {
@@ -40,6 +40,11 @@ function fileFilter(req, file, cb) {
 
   const allowedDocuments = [
     "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "text/plain",
   ];
 
   const allowed = [

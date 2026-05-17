@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { deletePublication, addComment, deleteComment } from '../api/publication.service';
 import { useToast } from './Toast';
 import type { Publication, Comment } from '../types';
+import EditPublicationModal from './EditPublicationModal';
 
 interface PublicationCardProps {
   pub: Publication;
@@ -13,9 +14,11 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
   const [isExpanded, setIsExpanded] = useState(false);
   const [commentContent, setCommentContent] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { user } = useAuth();
   const { success, error } = useToast();
   const canDelete = user?.role === 'admin' || user?.id === pub.author.id;
+  const canEdit = user?.id === pub.author.id;
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -121,8 +124,28 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
               Autor: {pub.author.firstName} {pub.author.lastName}
               {pub.isAnonymous && <span className="ml-2 text-slate-400 italic">(Anónimo)</span>}
             </p>
-            {canDelete && (
-              <button
+            <div className="flex gap-2">
+              {canEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="h-4 w-4"
+                  >
+                    <path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+                  </svg>
+                  Editar
+                </button>
+              )}
+              {canDelete && (
+                <button
                 onClick={handleDelete}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
               >
@@ -139,8 +162,9 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
                   />
                 </svg>
                 Borrar
-              </button>
-            )}
+                </button>
+              )}
+            </div>
           </div>
           <div className="text-slate-700 whitespace-pre-wrap">
             {pub.content}
@@ -232,6 +256,18 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
             </form>
           </div>
         </div>
+      )}
+      
+      {isEditModalOpen && (
+        <EditPublicationModal
+          open={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSuccess={() => {
+            setIsEditModalOpen(false);
+            onDelete?.(); // Refresh feed
+          }}
+          publication={pub}
+        />
       )}
     </div>
   );

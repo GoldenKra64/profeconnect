@@ -1,49 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import Field from './Field';
 import Button from './Button';
-import { createPublication } from '../api/publication.service';
+import { updatePublication } from '../api/publication.service';
 import { useToast } from './Toast';
+import type { Publication } from '../types';
 
-interface CreatePublicationModalProps {
+interface EditPublicationModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  publication: Publication;
 }
 
-export default function CreatePublicationModal({
+export default function EditPublicationModal({
   open,
   onClose,
   onSuccess,
-}: CreatePublicationModalProps) {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  publication,
+}: EditPublicationModalProps) {
+  const [title, setTitle] = useState(publication.title);
+  const [content, setContent] = useState(publication.content);
+  // Transform tags from array of objects/strings to comma-separated string
   const [tags, setTags] = useState('');
-  const [files, setFiles] = useState<File[]>([]);
-  const [fileError, setFileError] = useState<string | null>(null);
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(publication.isAnonymous);
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
-      setFiles(selectedFiles);
+  useEffect(() => {
+    if (open) {
+      setTitle(publication.title);
+      setContent(publication.content);
+      setIsAnonymous(publication.isAnonymous);
       
-      // Whitelist validation (for demonstration)
-      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt'];
-      const invalidFiles = selectedFiles.filter(file => {
-        const ext = file.name.slice((file.name.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
-        return !allowedExtensions.includes(`.${ext}`);
-      });
-
-      if (invalidFiles.length > 0) {
-        setFileError(`Advertencia: Has seleccionado archivos que no son imágenes o documentos permitidos (${invalidFiles.map(f => f.name).join(', ')}).`);
-      } else {
-        setFileError(null);
-      }
+      const tagsString = publication.tags 
+        ? publication.tags.map((t: any) => t.name || t).join(', ')
+        : '';
+      setTags(tagsString);
     }
-  };
+  }, [open, publication]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,22 +60,12 @@ export default function CreatePublicationModal({
         formData.append('tags', tag);
       });
 
-      // Files
-      files.forEach(file => {
-        formData.append('files', file);
-      });
-
-      await createPublication(formData);
-      success('Publicación creada correctamente.');
-      setTitle('');
-      setContent('');
-      setTags('');
-      setFiles([]);
-      setIsAnonymous(false);
+      await updatePublication(publication.id, formData);
+      success('Publicación actualizada correctamente.');
       onSuccess();
       onClose();
     } catch (err) {
-      error('Error al crear la publicación.');
+      error('Error al actualizar la publicación.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -91,14 +76,14 @@ export default function CreatePublicationModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Nueva Publicación"
+      title="Editar Publicación"
       footer={
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
           <Button onClick={handleSubmit} loading={loading}>
-            Publicar
+            Guardar Cambios
           </Button>
         </div>
       }
@@ -128,28 +113,6 @@ export default function CreatePublicationModal({
           onChange={(e) => setTags(e.target.value)}
           disabled={loading}
         />
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Archivos adjuntos (Imágenes, Documentos)
-          </label>
-          <input
-            type="file"
-            multiple
-            onChange={handleFileChange}
-            className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 transition-colors"
-            disabled={loading}
-          />
-          {fileError && (
-            <div className="mt-2 text-xs font-medium text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-200">
-              ⚠️ {fileError}
-            </div>
-          )}
-          {files.length > 0 && !fileError && (
-            <div className="mt-2 text-xs text-slate-500">
-              {files.length} archivo(s) seleccionado(s)
-            </div>
-          )}
-        </div>
         <label className="flex items-center gap-2 cursor-pointer mt-2">
           <input
             type="checkbox"

@@ -17,8 +17,7 @@ function validatePublicationFiles(
   const documents =
     files.filter(
       f =>
-        f.mimetype ===
-        "application/pdf"
+        !f.mimetype.startsWith("image/")
     );
 
     if (images.length > 4) {
@@ -26,7 +25,7 @@ function validatePublicationFiles(
     }
 
     if (documents.length > 1) {
-      return res.status(400).json(new ApiResponse(false, 400, "Máximo 1 PDF", {}));
+      return res.status(400).json(new ApiResponse(false, 400, "Máximo 1 documento", {}));
     }
 
   for (const image of images) {
@@ -40,11 +39,11 @@ function validatePublicationFiles(
 
   for (const doc of documents) {
 
-    if (doc.size > 1024 * 1024) {
+    if (doc.size > 5 * 1024 * 1024) {
 
       return res.status(400).json({
         message:
-          "El PDF no puede superar 1MB",
+          "El documento no puede superar 5MB",
       });
 
     }
