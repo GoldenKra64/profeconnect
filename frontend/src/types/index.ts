@@ -144,3 +144,19 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
 }
+
+export interface SecurityIncident {
+  id: number;
+  userId: number;
+  fileName: string;
+  attemptedMime: string;
+  detectedMime: string;
+  status: string;
+  createdAt: string;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    institutionalEmail: string;
+  };
+}

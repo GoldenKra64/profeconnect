@@ -10,6 +10,7 @@ import ChatbotPage from '../pages/ChatbotPage';
 import FeedPage from '../pages/FeedPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import AdminRequestsPage from '../pages/AdminRequestsPage';
+import AdminIncidentsPage from '../pages/AdminIncidentsPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import PublicOnlyRoute from './PublicOnlyRoute';
 
@@ -34,6 +35,10 @@ export default function AppRoutes() {
               path="/admin/solicitudes"
               element={<AdminRequestsPage />}
             />
+          </Route>
+
+          <Route element={<RoleRoute allow={['admin', 'moderador']} />}>
+            <Route path="/admin/incidentes" element={<AdminIncidentsPage />} />
           </Route>
         </Route>
       </Route>

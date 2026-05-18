@@ -10,6 +10,7 @@ const publicationRoutes = require("../modules/publications/publication.routes");
 const commentRoutes = require("../modules/comments/comment.routes");
 
 const categoryRoutes = require("../modules/category/category.routes");
+const incidentRoutes = require("../modules/incidents/incident.routes");
 const prisma = require("../lib/prisma");
 
 const router = express.Router();
@@ -30,6 +31,7 @@ router.get("/health/db", async (req, res, next) => {
 router.use("/auth", authRoutes);
 router.use("/admin/registration-requests", registrationRequestRoutes);
 router.use("/admin/users", userRoutes);
+router.use("/admin/incidents", incidentRoutes);
 router.use("/profiles", profileRoutes);
 router.use("/publications", publicationRoutes);
 router.use("/comments", commentRoutes);

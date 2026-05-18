@@ -55,6 +55,7 @@ model User {
   comments           Comment[]
 
   reviewedRegistrationRequests RegistrationRequest[] @relation("ReviewedRegistrationRequests")
+  securityIncidents  SecurityIncident[]
 
   lastLoginAt        DateTime?
   createdAt          DateTime   @default(now())
@@ -176,4 +177,17 @@ model RegistrationRequest {
   @@index([status])
 
   @@map("solicitudes_registro")
+}
+
+model SecurityIncident {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  fileName      String
+  attemptedMime String
+  detectedMime  String
+  status        String   @default("PENDING") // PENDING, RESOLVED
+  createdAt     DateTime @default(now())
+
+  @@map("incidentes_seguridad")
 }
