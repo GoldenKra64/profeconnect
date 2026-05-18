@@ -20,6 +20,25 @@ class IncidentController {
       next(error);
     }
   }
+
+  async downloadIncidentFile(req, res, next) {
+    try {
+      const { id } = req.params;
+      const incident = await incidentService.getIncidentById(id);
+      
+      if (!incident || !incident.physicalPath) {
+        return res.status(404).json(new ApiResponse(false, 404, "Archivo no encontrado o no disponible"));
+      }
+
+      res.download(incident.physicalPath, incident.fileName, (err) => {
+        if (err) {
+          next(err);
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new IncidentController();

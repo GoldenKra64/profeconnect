@@ -187,6 +187,7 @@ model SecurityIncident {
   attemptedMime String
   detectedMime  String
   status        String   @default("PENDING") // PENDING, RESOLVED
+  physicalPath  String?
   createdAt     DateTime @default(now())
 
   @@map("incidentes_seguridad")

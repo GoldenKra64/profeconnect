@@ -19,4 +19,11 @@ router.patch(
   incidentController.resolveIncident
 );
 
+router.get(
+  "/:id/download",
+  authMiddleware,
+  requireRole("admin", "moderator"),
+  incidentController.downloadIncidentFile
+);
+
 module.exports = router;

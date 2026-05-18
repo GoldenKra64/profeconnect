@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Spinner from '../components/Spinner';
 import { useToast } from '../components/Toast';
 import { extractErrorMessage } from '../api/client';
-import { getPendingIncidents, resolveIncident } from '../api/incident.service';
+import { getPendingIncidents, resolveIncident, downloadIncidentFile } from '../api/incident.service';
 import type { SecurityIncident } from '../types';
 
 function formatDate(value: string | null) {
@@ -72,6 +72,17 @@ export default function AdminIncidentsPage() {
       );
     } finally {
       setResolvingId(null);
+    }
+  }
+
+  async function handleDownload(incident: SecurityIncident) {
+    try {
+      await downloadIncidentFile(incident.id, incident.fileName);
+      toast.success('Descarga iniciada');
+    } catch (error) {
+      toast.error(
+        extractErrorMessage(error, 'No se pudo descargar el archivo forense')
+      );
     }
   }
 
@@ -147,13 +158,21 @@ export default function AdminIncidentsPage() {
                       {incident.detectedMime}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleResolve(incident)}
-                        disabled={resolvingId === incident.id}
-                        className="inline-flex items-center justify-center rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/50 disabled:opacity-50"
-                      >
-                        {resolvingId === incident.id ? 'Marcando...' : 'Marcar Resuelto'}
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleDownload(incident)}
+                          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        >
+                          Descargar
+                        </button>
+                        <button
+                          onClick={() => handleResolve(incident)}
+                          disabled={resolvingId === incident.id}
+                          className="inline-flex items-center justify-center rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500/50 disabled:opacity-50"
+                        >
+                          {resolvingId === incident.id ? 'Marcando...' : 'Marcar Resuelto'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

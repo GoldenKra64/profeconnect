@@ -28,6 +28,12 @@ class IncidentService {
       data: { status: "RESOLVED" },
     });
   }
+
+  async getIncidentById(id) {
+    return await prisma.securityIncident.findUnique({
+      where: { id: parseInt(id) }
+    });
+  }
 }
 
 module.exports = new IncidentService();

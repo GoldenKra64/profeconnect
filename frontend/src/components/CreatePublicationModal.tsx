@@ -5,6 +5,7 @@ import Button from './Button';
 import { createPublication } from '../api/publication.service';
 import { getCategories, type Category } from '../api/category.service';
 import { useToast } from './Toast';
+import { extractErrorMessage } from '../api/client';
 
 interface CreatePublicationModalProps {
   open: boolean;
@@ -95,7 +96,7 @@ export default function CreatePublicationModal({
       onSuccess();
       onClose();
     } catch (err) {
-      error('Error al crear la publicación.');
+      error(extractErrorMessage(err, 'Error al crear la publicación.'));
       console.error(err);
     } finally {
       setLoading(false);

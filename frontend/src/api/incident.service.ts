@@ -10,3 +10,18 @@ export async function resolveIncident(id: number): Promise<SecurityIncident> {
   const response = await apiClient.patch<ApiResponse<SecurityIncident>>(`/admin/incidents/${id}/resolve`);
   return response.data.data;
 }
+
+export async function downloadIncidentFile(id: number, fileName: string): Promise<void> {
+  const response = await apiClient.get(`/admin/incidents/${id}/download`, {
+    responseType: 'blob',
+  });
+
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', fileName);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}
