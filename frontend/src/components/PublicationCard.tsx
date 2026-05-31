@@ -1,14 +1,37 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { deletePublication, addComment, deleteComment, updatePublication } from '../api/publication.service';
+import {
+  deletePublication,
+  addComment,
+  deleteComment,
+  updatePublication,
+  setPublicationReaction,
+  removePublicationReaction,
+} from '../api/publication.service';
 import { getPublicFilesBaseUrl } from '../api/client';
 import { useToast } from './Toast';
-import type { Publication, Comment } from '../types';
+import type { Publication, Comment, ReactionSummary, ReactionType } from '../types';
 
 interface PublicationCardProps {
   pub: Publication;
   onDelete?: () => void;
 }
+
+const emptyReactionSummary: ReactionSummary = {
+  LIKE: 0,
+  USEFUL: 0,
+  LOVE: 0,
+  total: 0,
+};
+
+const reactionOptions: Array<{
+  type: ReactionType;
+  label: string;
+}> = [
+  { type: 'LIKE', label: 'Me gusta' },
+  { type: 'USEFUL', label: 'Me parece util' },
+  { type: 'LOVE', label: 'Me encanta' },
+];
 
 export default function PublicationCard({ pub, onDelete }: PublicationCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -20,6 +43,13 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
   const [editContent, setEditContent] = useState(pub.content);
   const [localTitle, setLocalTitle] = useState(pub.title);
   const [localContent, setLocalContent] = useState(pub.content);
+  const [reactionSummary, setReactionSummary] = useState<ReactionSummary>(
+    pub.reactionSummary ?? emptyReactionSummary
+  );
+  const [myReaction, setMyReaction] = useState<ReactionType | null>(
+    pub.myReaction ?? null
+  );
+  const [isReacting, setIsReacting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const { user } = useAuth();
   const { success, error } = useToast();
@@ -30,6 +60,8 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
     setLocalTitle(pub.title);
     setLocalContent(pub.content);
     setComments(pub.comments ?? []);
+    setReactionSummary(pub.reactionSummary ?? emptyReactionSummary);
+    setMyReaction(pub.myReaction ?? null);
   }, [pub]);
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -99,6 +131,30 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
     }
   };
 
+  const handleReaction = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+    type: ReactionType
+  ) => {
+    e.stopPropagation();
+    if (isReacting) return;
+
+    setIsReacting(true);
+    try {
+      const reactionState =
+        myReaction === type
+          ? await removePublicationReaction(pub.id)
+          : await setPublicationReaction(pub.id, type);
+
+      setReactionSummary(reactionState.reactionSummary ?? emptyReactionSummary);
+      setMyReaction(reactionState.myReaction ?? null);
+    } catch (err) {
+      error('Error al actualizar la reaccion.');
+      console.error(err);
+    } finally {
+      setIsReacting(false);
+    }
+  };
+
   return (
     <div
       className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 cursor-pointer hover:bg-slate-50 transition-colors"
@@ -150,6 +206,36 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
       <p className="text-xs text-slate-500 mt-2">
         {new Date(pub.createdAt).toLocaleDateString()}
       </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        {reactionOptions.map((option) => {
+          const isActive = myReaction === option.type;
+          const count = reactionSummary[option.type] ?? 0;
+
+          return (
+            <button
+              key={option.type}
+              type="button"
+              onClick={(e) => handleReaction(e, option.type)}
+              disabled={isReacting}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition-colors disabled:opacity-60 ${
+                isActive
+                  ? 'bg-brand-600 text-white ring-brand-600'
+                  : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              <span>{option.label}</span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[11px] ${
+                  isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {isExpanded && (
         <div className="mt-4 pt-4 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>

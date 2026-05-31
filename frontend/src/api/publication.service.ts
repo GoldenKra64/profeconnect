@@ -3,7 +3,14 @@ import type {
   ApiResponse,
   Publication,
   Comment,
+  ReactionSummary,
+  ReactionType,
 } from '../types';
+
+export interface ReactionState {
+  reactionSummary: ReactionSummary;
+  myReaction: ReactionType | null;
+}
 
 export async function getPublications(tagIds?: number[]): Promise<Publication[]> {
   const params: Record<string, string> = {};
@@ -52,4 +59,24 @@ export async function addComment(
 
 export async function deleteComment(commentId: number): Promise<void> {
   await apiClient.delete(`/comments/${commentId}`);
+}
+
+export async function setPublicationReaction(
+  postId: number,
+  type: ReactionType
+): Promise<ReactionState> {
+  const response = await apiClient.put<ApiResponse<ReactionState>>(
+    `/publications/${postId}/reaction`,
+    { type }
+  );
+  return response.data.data;
+}
+
+export async function removePublicationReaction(
+  postId: number
+): Promise<ReactionState> {
+  const response = await apiClient.delete<ApiResponse<ReactionState>>(
+    `/publications/${postId}/reaction`
+  );
+  return response.data.data;
 }

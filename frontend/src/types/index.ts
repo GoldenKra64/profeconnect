@@ -101,6 +101,15 @@ export interface PublicationAuthor {
   role: string | null;
 }
 
+export type ReactionType = 'LIKE' | 'USEFUL' | 'LOVE';
+
+export interface ReactionSummary {
+  LIKE: number;
+  USEFUL: number;
+  LOVE: number;
+  total: number;
+}
+
 export interface Attachment {
   id: number;
   url: string;
@@ -125,6 +134,8 @@ export interface Publication {
   tags: any[];
   attachments?: Attachment[];
   comments?: Comment[];
+  reactionSummary?: ReactionSummary;
+  myReaction?: ReactionType | null;
 }
 
 export interface Comment {
