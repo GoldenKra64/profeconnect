@@ -51,12 +51,27 @@ const frontendExists = fs.existsSync(FRONTEND_DIST);
 
 if (frontendExists) {
   app.use(express.static(FRONTEND_DIST));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(FRONTEND_DIST, "index.html"));
+
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api/v1") || req.path.startsWith("/public")) {
+      return next();
+    }
+
+    return res.sendFile(path.join(FRONTEND_DIST, "index.html"));
   });
 } else {
   app.get("/", (req, res) => {
     res.json({ message: "API AmigojoLive funcionando correctamente" });
+  });
+
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api/v1") || req.path.startsWith("/public")) {
+      return next();
+    }
+
+    return res.status(404).json({
+      message: "Ruta no encontrada",
+    });
   });
 }
 
