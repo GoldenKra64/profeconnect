@@ -1,5 +1,4 @@
 const { ApiResponse } = require("../config/api.response");
-const FileType = require("file-type");
 const fs = require("fs");
 const prisma = require("../lib/prisma");
 
@@ -22,6 +21,7 @@ const DOCUMENT_MIME_TYPES = new Set([
 
 async function validatePublicationFiles(req, res, next) {
   try {
+    const { fileTypeFromFile } = await import("file-type");
     const files = req.files || [];
 
     let clamscan;
@@ -52,7 +52,7 @@ async function validatePublicationFiles(req, res, next) {
     // VALIDACIÓN ESTRICTA DE MAGIC NUMBERS
     for (const file of files) {
       const expectedMime = file.mimetype; // Lo que el usuario dice que es (ej. application/pdf)
-      const fileTypeResult = await FileType.fromFile(file.path);
+      const fileTypeResult = await fileTypeFromFile(file.path);
 
       // Si la librería no detecta nada, asumimos de forma segura que es texto plano o un formato sin firma
       const actualMime = fileTypeResult ? fileTypeResult.mime : "text/plain";
@@ -90,7 +90,7 @@ async function validatePublicationFiles(req, res, next) {
           if (isInfected) {
             file.isSuspicious = true;
             // Guardamos el nombre del virus detectado como evidencia forense
-            file.detectedMime = "VIRUS: " + viruses.join(", "); 
+            file.detectedMime = "VIRUS: " + viruses.join(", ");
             file.attemptedMime = expectedMime;
           }
         } catch (scanErr) {
