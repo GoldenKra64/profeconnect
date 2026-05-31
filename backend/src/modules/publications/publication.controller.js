@@ -24,7 +24,10 @@ async function getPublicationFeed(req, res, next) {
     const parsed = listPublicationsDto.safeParse(req.query);
     const tagIds = parsed.success ? parsed.data.tagIds : undefined;
 
-    const publications = await publicationService.getPublicationFeed({ tagIds });
+    const publications = await publicationService.getPublicationFeed({
+      tagIds,
+      currentUserId: req.user.id,
+    });
 
     return res.status(200).json(new ApiResponse(true, 200, "Publicaciones obtenidas correctamente", publications));
   } catch (error) {
@@ -34,7 +37,10 @@ async function getPublicationFeed(req, res, next) {
 
 async function getPublicationById(req, res, next) {
   try {
-    const publication = await publicationService.getPublicationById(Number(req.params.id));
+    const publication = await publicationService.getPublicationById(
+      Number(req.params.id),
+      req.user.id
+    );
 
     return res.status(200).json(
       new ApiResponse(true, 200, "Publicación obtenida correctamente", publication)

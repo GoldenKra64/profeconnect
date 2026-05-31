@@ -2,11 +2,16 @@ const fs = require("fs");
 const path = require("path");
 const prisma = require("../../lib/prisma");
 const { mapCommentToResponse } = require("../comments/comment.service");
+const {
+  buildReactionSummary,
+  getMyReaction,
+} = require("../reactions/reaction.service");
 
 const PUBLIC_DIR = path.resolve(__dirname, "../../../public");
 
-function mapPostToResponse(post) {
+function mapPostToResponse(post, currentUserId) {
   const shouldHideAuthor = post.isAnonymous;
+  const reactions = post.reactions ?? [];
 
   return {
     id: post.id,
@@ -19,6 +24,8 @@ function mapPostToResponse(post) {
     attachments: post.attachments,
     comments: (post.comments ?? []).map(mapCommentToResponse),
     tags: post.tags ?? [],
+    reactionSummary: buildReactionSummary(reactions),
+    myReaction: getMyReaction(reactions, currentUserId),
     author: shouldHideAuthor
       ? {
           id: null,
@@ -85,6 +92,12 @@ async function createPublication({ title, content, isAnonymous, authorId, files 
         },
       },
       tags: true,
+      reactions: {
+        select: {
+          type: true,
+          userId: true,
+        },
+      },
     },
   });
 
@@ -105,10 +118,10 @@ async function createPublication({ title, content, isAnonymous, authorId, files 
     }
   }
 
-  return mapPostToResponse(post);
+  return mapPostToResponse(post, authorId);
 }
 
-async function getPublicationFeed({ tagIds } = {}) {
+async function getPublicationFeed({ tagIds, currentUserId } = {}) {
   const posts = await prisma.post.findMany({
     where: {
       status: "PUBLISHED",
@@ -140,13 +153,19 @@ async function getPublicationFeed({ tagIds } = {}) {
         },
       },
       tags: true,
+      reactions: {
+        select: {
+          type: true,
+          userId: true,
+        },
+      },
     },
   });
 
-  return posts.map(mapPostToResponse);
+  return posts.map((post) => mapPostToResponse(post, currentUserId));
 }
 
-async function getPublicationById(id) {
+async function getPublicationById(id, currentUserId) {
   const post = await prisma.post.findUnique({
     where: { id },
     include: {
@@ -169,6 +188,12 @@ async function getPublicationById(id) {
         },
       },
       tags: true,
+      reactions: {
+        select: {
+          type: true,
+          userId: true,
+        },
+      },
     },
   });
 
@@ -178,7 +203,7 @@ async function getPublicationById(id) {
     throw error;
   }
 
-  return mapPostToResponse(post);
+  return mapPostToResponse(post, currentUserId);
 }
 
 async function updatePublication(id, userId, data) {
@@ -238,10 +263,16 @@ async function updatePublication(id, userId, data) {
         },
       },
       tags: true,
+      reactions: {
+        select: {
+          type: true,
+          userId: true,
+        },
+      },
     },
   });
 
-  return mapPostToResponse(post);
+  return mapPostToResponse(post, userId);
 }
 
 async function deletePublication(id, user) {

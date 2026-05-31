@@ -9,6 +9,8 @@ const validateDto = require("../../middlewares/validate.middleware");
 const { createPublicationDto, updatePublicationDto } = require("./publication.dto");
 const { createCommentDto } = require("../comments/comment.dto");
 const commentController = require("../comments/comment.controller");
+const { upsertReactionDto } = require("../reactions/reaction.dto");
+const reactionController = require("../reactions/reaction.controller");
 const validatePublicationFiles = require("../../middlewares/validate-publication-files.middleware");
 
 const router = express.Router();
@@ -43,6 +45,21 @@ router.post(
   requireRole("docente", "admin"),
   validateDto(createCommentDto),
   commentController.createComment
+);
+
+router.put(
+  "/:id/reaction",
+  authMiddleware,
+  requireRole("docente", "admin"),
+  validateDto(upsertReactionDto),
+  reactionController.upsertReaction
+);
+
+router.delete(
+  "/:id/reaction",
+  authMiddleware,
+  requireRole("docente", "admin"),
+  reactionController.deleteReaction
 );
 
 router.put(

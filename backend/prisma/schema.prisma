@@ -25,6 +25,12 @@ enum RegistrationRequestStatus {
   RECHAZADA
 }
 
+enum ReactionType {
+  LIKE
+  USEFUL
+  LOVE
+}
+
 model Role {
   id          Int      @id @default(autoincrement())
   name        String   @unique
@@ -54,6 +60,7 @@ model User {
 
   posts              Post[]
   comments           Comment[]
+  reactions          PostReaction[]
 
   reviewedRegistrationRequests RegistrationRequest[] @relation("ReviewedRegistrationRequests")
   securityIncidents  SecurityIncident[]
@@ -92,6 +99,7 @@ model Post {
   author      User @relation(fields: [authorId], references: [id])
   comments    Comment[]
   tags        Tag[]
+  reactions   PostReaction[]
 
   attachments PostAttachment[]
   securityIncidents SecurityIncident[]
@@ -116,6 +124,19 @@ model PostAttachment {
   createdAt   DateTime @default(now())
 
   @@map("adjuntos_publicacion")
+}
+
+model PostReaction {
+  id        Int          @id @default(autoincrement())
+  postId    Int
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User         @relation(fields: [userId], references: [id])
+  type      ReactionType
+  createdAt DateTime     @default(now())
+
+  @@unique([postId, userId])
+  @@map("reacciones_publicacion")
 }
 
 enum AttachmentType {

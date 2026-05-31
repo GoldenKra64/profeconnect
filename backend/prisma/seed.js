@@ -54,6 +54,53 @@ async function main() {
     });
   }
 
+  const categories = [
+    "Recursos",
+    "Lengua y Literatura",
+    "Matemática",
+    "Ciencias Naturales",
+    "Ciencias Sociales",
+    "Inglés",
+    "Educación Física",
+    "Educación Cultural y Artística",
+    "Biología",
+    "Física",
+    "Química",
+    "Historia",
+    "Filosofía",
+    "Educación para la Ciudadanía",
+    "Emprendimiento y Gestión",
+    "Tutoría",
+    "Participación Estudiantil",
+    "Religión",
+    "Informática / Computación",
+  ];
+
+  for (const name of categories) {
+    const existingCategory = await prisma.tag.findFirst({
+      where: {
+        name: {
+          equals: name,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (existingCategory) {
+      if (existingCategory.name !== name) {
+        await prisma.tag.update({
+          where: { id: existingCategory.id },
+          data: { name },
+        });
+      }
+      continue;
+    }
+
+    await prisma.tag.create({
+      data: { name },
+    });
+  }
+
   const adminRole = await prisma.role.findUnique({
     where: { name: "admin" },
   });
@@ -87,6 +134,7 @@ async function main() {
   });
 
   console.log("Roles creados o actualizados correctamente.");
+  console.log("CategorÃ­as creadas o actualizadas correctamente.");
   console.log(`Usuario administrador inicial: ${adminUser.institutionalEmail}`);
   console.log("Seed finalizada correctamente.");
 }
