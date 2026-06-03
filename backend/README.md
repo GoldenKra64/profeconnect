@@ -15,9 +15,8 @@ backend/
 ├── src/
 │   ├── config/            # Configuraciones globales (env, DB, constantes)
 │   ├── lib/               # Librerías y utilidades reutilizables
-│   ├── mcp/               # Servidor MCP de publicaciones + cliente embebido
 │   ├── middlewares/       # Middlewares de Express (auth, errores, logs)
-│   ├── modules/           # Módulos de dominio (lógica de negocio, incl. ai/)
+│   ├── modules/           # Módulos de dominio (lógica de negocio)
 │   ├── routes/            # Definición de rutas HTTP
 │   ├── app.js             # Configuración de la app Express
 │   └── server.js          # Punto de entrada del servidor
@@ -119,14 +118,19 @@ npx prisma generate
 npm run dev
 ```
 
-### Base de datos en línea (Supabase)
+### Base de datos local con Docker
 
-Copie `backend/.env.example` a `backend/.env` y pegue desde el panel de Supabase (**Settings → Database**):
+En la raíz del monorepo existe `docker-compose.yml` con PostgreSQL 16 (`amigo` / `amigo_dev`, base `amigojolive`).
 
-- `DIRECT_URL`: **Session pooler** o **Direct connection** (puerto **5432**).
-- `DATABASE_URL`: **Transaction pooler** (puerto **6543**), con `?pgbouncer=true` al final si usa el pooler.
+```bash
+docker compose up -d postgres
+```
 
-El servidor Node usa `DIRECT_URL` en primer lugar (`resolve-database-url.js`) para evitar timeouts del pooler en consultas largas.
+En `backend/.env`, use por ejemplo:
+
+- `DATABASE_URL=postgresql://amigo:amigo_dev@localhost:5432/amigojolive`
+- `DIRECT_URL=` (misma cadena suele funcionar bien en desarrollo)
+- Deje vacío `DATABASE_APP_URL`, o use solo una cadena válida si la necesita en producción hosteada.
 
 Aplique migraciones y ejecute el seed del administrador:
 
@@ -137,31 +141,15 @@ npm run prisma:deploy
 npm run db:seed
 ```
 
-Con Prisma 7, la URL de **Migrate** viene de `prisma.config.ts` (`DIRECT_URL` primero, luego `DATABASE_URL`).
+Con Prisma 7, la URL que usa **Migrate** viene de `prisma.config.ts` (variable `DATABASE_URL`).
 
-Para hosts remotos (Supabase, RDS, etc.), el adaptador activa TLS con `rejectUnauthorized: false`; en **localhost** el SSL se desactiva.
-
-### Base de datos local con Docker (opcional)
-
-En la raíz del monorepo existe `docker-compose.yml` con PostgreSQL 16 (`amigo` / `amigo_dev`, base `amigojolive`) solo si prefiere no usar Supabase.
+Para hosts remotos cloud (RDS, Supabase, etc.), el adaptador usa TLS con `rejectUnauthorized: false`; en **localhost** el SSL del pool se desactiva automáticamente.
 
 ### Railway: volumen de adjuntos
 
 Monte el volumen persistente en la misma ruta física donde el proceso escribe `backend/public/` (adjuntos Multer estáticos por `/public/...`). Si cambia la ruta de despliegue, verifique las rutas resueltas en `src/app.js` y `publication-upload.middleware`.
 
 ---
-
-## MCP e IA
-
-Las publicaciones del foro se exponen al módulo de IA mediante **Model Context Protocol**:
-
-- **Servidor MCP** (`src/mcp/posts-server.js`): herramientas `posts_get_feed`, `posts_get_by_id`, `posts_list_tags`, `posts_classify_draft`, `posts_apply_tags` y recursos `post://{id}`, `tags://catalog`.
-- **Cliente embebido** (`MCP_MODE=embedded`, por defecto en la API) o **stdio** (`npm run mcp:posts`) para Cursor u otros clientes MCP.
-- **Clasificación**: `POST /api/v1/ai/classify` (roles `docente` o `admin`) con body `{ title, content, postId?, applyTags? }`.
-
-Variables en `.env.example`: `CHATBOT_API_KEY`, `MCP_MODE`, `AI_CLASSIFY_MAX_TOKENS`, `AI_AGENT_MAX_ITERATIONS`.
-
-El chatbot admite consulta al foro con `useForumTools: true` en Socket.IO (`chat:message`, `chat:stream`) o el evento `chat:forum` (requiere JWT en `auth.token`).
 
 ## 🧪 Testing
 
@@ -171,10 +159,10 @@ Las pruebas se encuentran en:
 test/
 ```
 
-Ejecutar pruebas MCP (autorización de etiquetas):
+Ejecutar:
 
 ```bash
-npm run test:mcp
+npm test
 ```
 
 ---

@@ -1,8 +1,7 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
-// Migraciones: conexión directa/sesión (5432). El pooler 6543 no sirve para migrate deploy.
-const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL || process.env.DIRECT_URL;
 
 if (!databaseUrl) {
   throw new Error("Debe definir DIRECT_URL o DATABASE_URL en el archivo .env");
