@@ -3,11 +3,16 @@ import { getChatbotSocket, disconnectChatbot, sendChatStream, type ChatMessage }
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: '¡Hola! Soy el asistente educativo. ¿En qué puedo ayudarte?' },
+    {
+      role: 'assistant',
+      content:
+        '¡Hola! Soy el asistente educativo. Puedo ayudarte con pedagogía o, si activas la opción de abajo, consultar las publicaciones del foro.',
+    },
   ]);
   const [input, setInput] = useState('');
   const [connected, setConnected] = useState(false);
   const [streaming, setStreaming] = useState(false);
+  const [useForumTools, setUseForumTools] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,24 +53,59 @@ export default function ChatbotPage() {
     }));
 
     try {
-      let reply = '';
-      await sendChatStream(history, (token) => {
-        reply += token;
-        setMessages((prev) => {
-          const updated = [...prev];
-          if (updated[updated.length - 1]?.role === 'assistant') {
-            updated[updated.length - 1] = { role: 'assistant', content: reply };
-          } else {
-            updated.push({ role: 'assistant', content: reply });
-          }
-          return updated;
-        });
-      });
+      if (useForumTools) {
+        const reply = await sendChatStream(history, (token) => {
+          if (!token) return;
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last?.role === 'assistant') {
+              updated[updated.length - 1] = {
+                role: 'assistant',
+                content: (last.content || '') + token,
+              };
+            } else {
+              updated.push({ role: 'assistant', content: token });
+            }
+            return updated;
+          });
+        }, true);
+
+        if (reply) {
+          setMessages((prev) => {
+            const updated = [...prev];
+            if (updated[updated.length - 1]?.role === 'assistant') {
+              updated[updated.length - 1] = { role: 'assistant', content: reply };
+            } else {
+              updated.push({ role: 'assistant', content: reply });
+            }
+            return updated;
+          });
+        }
+      } else {
+        let reply = '';
+        await sendChatStream(history, (token) => {
+          reply += token;
+          setMessages((prev) => {
+            const updated = [...prev];
+            if (updated[updated.length - 1]?.role === 'assistant') {
+              updated[updated.length - 1] = { role: 'assistant', content: reply };
+            } else {
+              updated.push({ role: 'assistant', content: reply });
+            }
+            return updated;
+          });
+        }, false);
+      }
       setStreaming(false);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: err instanceof Error ? `Error: ${err.message}` : 'Error al conectar con el chatbot' },
+        {
+          role: 'assistant',
+          content:
+            err instanceof Error ? `Error: ${err.message}` : 'Error al conectar con el chatbot',
+        },
       ]);
       setStreaming(false);
     }
@@ -73,23 +113,29 @@ export default function ChatbotPage() {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-3xl flex-col">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold text-slate-900">Chatbot Educativo</h1>
         <span
           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
-            connected
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
+            connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
           }`}
         >
           <span
-            className={`h-1.5 w-1.5 rounded-full ${
-              connected ? 'bg-green-500' : 'bg-red-500'
-            }`}
+            className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`}
           />
           {connected ? 'Conectado' : 'Desconectado'}
         </span>
       </div>
+
+      <label className="mb-3 flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+        <input
+          type="checkbox"
+          checked={useForumTools}
+          onChange={(e) => setUseForumTools(e.target.checked)}
+          className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+        />
+        Consultar publicaciones del foro (requiere sesión iniciada)
+      </label>
 
       <div className="flex-1 overflow-y-auto rounded-xl border border-slate-200 bg-white p-4">
         {messages.map((msg, i) => (
@@ -116,7 +162,11 @@ export default function ChatbotPage() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Escribe tu mensaje..."
+          placeholder={
+            useForumTools
+              ? 'Pregunta sobre las publicaciones del foro...'
+              : 'Escribe tu mensaje...'
+          }
           disabled={streaming}
           className="flex-1 rounded-lg border border-slate-300 px-4 py-2.5 text-sm shadow-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200 disabled:opacity-50"
         />

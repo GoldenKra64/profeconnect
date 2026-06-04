@@ -4,6 +4,7 @@ import Field from './Field';
 import Button from './Button';
 import { createPublication } from '../api/publication.service';
 import { getCategories, type Category } from '../api/category.service';
+import { classifyPublication } from '../api/ai.service';
 import { useToast } from './Toast';
 import { extractErrorMessage } from '../api/client';
 
@@ -26,6 +27,7 @@ export default function CreatePublicationModal({
   const [fileError, setFileError] = useState<string | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [classifying, setClassifying] = useState(false);
   const { success, error } = useToast();
 
   const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf', '.xls', '.xlsx'];
@@ -67,6 +69,32 @@ export default function CreatePublicationModal({
     setFiles([]);
     setFileError(null);
     setIsAnonymous(false);
+  };
+
+  const handleSuggestTags = async () => {
+    if (!title.trim() || !content.trim()) {
+      error('Escribe título y contenido antes de sugerir etiquetas.');
+      return;
+    }
+    setClassifying(true);
+    try {
+      const result = await classifyPublication({
+        title: title.trim(),
+        content: content.trim(),
+        applyTags: false,
+      });
+      const ids = result.suggestedTags.map((t) => t.id);
+      setSelectedTagIds(ids);
+      success(
+        result.rationale
+          ? `Etiquetas sugeridas: ${result.suggestedTags.map((t) => t.name).join(', ')}`
+          : 'Etiquetas sugeridas aplicadas a la selección.'
+      );
+    } catch (err) {
+      error(extractErrorMessage(err, 'No se pudo clasificar con IA.'));
+    } finally {
+      setClassifying(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -137,6 +165,16 @@ export default function CreatePublicationModal({
           required
           disabled={loading}
         />
+
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={handleSuggestTags}
+          loading={classifying}
+          disabled={loading || !title.trim() || !content.trim()}
+        >
+          Sugerir etiquetas con IA
+        </Button>
 
         {availableCategories.length > 0 && (
           <div>

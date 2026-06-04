@@ -1,8 +1,18 @@
 import { io, Socket } from 'socket.io-client';
 import { TOKEN_STORAGE_KEY } from './client';
 
-const SOCKET_URL =
-  (import.meta.env.VITE_SOCKET_URL as string | undefined) ?? 'http://localhost:3000';
+function resolveSocketBaseUrl(): string {
+  const fromEnv = (import.meta.env.VITE_SOCKET_URL as string | undefined)?.trim();
+  if (fromEnv) {
+    return fromEnv.replace(/\/$/, '');
+  }
+  if (import.meta.env.DEV) {
+    return 'http://localhost:3000';
+  }
+  return window.location.origin;
+}
+
+const SOCKET_URL = resolveSocketBaseUrl();
 
 let socket: Socket | null = null;
 
@@ -25,7 +35,7 @@ export function getChatbotSocket(): Socket {
   });
 
   socket.on('connect', () => {
-    console.log('Conectado al chatbot');
+    console.log('Conectado al chatbot', SOCKET_URL);
   });
 
   socket.on('disconnect', (reason) => {
@@ -47,7 +57,8 @@ export function disconnectChatbot(): void {
 }
 
 export function sendChatMessage(
-  messages: ChatMessage[]
+  messages: ChatMessage[],
+  useForumTools = false
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const s = getChatbotSocket();
@@ -70,16 +81,43 @@ export function sendChatMessage(
     s.once('chat:response', onResponse);
     s.once('chat:error', onError);
 
-    s.emit('chat:message', { messages });
+    s.emit('chat:message', { messages, useForumTools });
   });
 }
 
 export function sendChatStream(
   messages: ChatMessage[],
-  onToken: (token: string) => void
+  onToken: (token: string) => void,
+  useForumTools = false
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const s = getChatbotSocket();
+
+    if (useForumTools) {
+      const onResponse = (data: { message: string }) => {
+        cleanup();
+        resolve(data.message);
+      };
+      const onError = (data: { message: string }) => {
+        cleanup();
+        reject(new Error(data.message));
+      };
+      const cleanup = () => {
+        s.off('chat:response', onResponse);
+        s.off('chat:error', onError);
+        s.off('chat:done', onDone);
+      };
+      const onDone = () => {
+        cleanup();
+        resolve('');
+      };
+      s.once('chat:response', onResponse);
+      s.once('chat:error', onError);
+      s.once('chat:done', onDone);
+      s.emit('chat:stream', { messages, useForumTools: true });
+      return;
+    }
+
     let fullContent = '';
 
     const onTokenHandler = (data: { token: string }) => {
@@ -107,6 +145,6 @@ export function sendChatStream(
     s.once('chat:done', onDone);
     s.once('chat:error', onError);
 
-    s.emit('chat:stream', { messages });
+    s.emit('chat:stream', { messages, useForumTools: false });
   });
 }

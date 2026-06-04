@@ -26,3 +26,7 @@ services:
         value: https://amigojolive.onrender.com
       - key: CHATBOT_API_KEY
         sync: false
+      - key: VITE_API_URL
+        value: https://amigojolive-production.up.railway.app/api/v1
+      - key: VITE_SOCKET_URL
+        value: https://amigojolive-production.up.railway.app

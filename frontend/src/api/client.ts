@@ -13,7 +13,9 @@ const baseURL =
     ? envUrlRaw
     : import.meta.env.DEV
       ? '/api/v1'
-      : PRODUCTION_API_URL;
+      : typeof window !== 'undefined'
+        ? `${window.location.origin}/api/v1`
+        : PRODUCTION_API_URL;
 
 export function getPublicFilesBaseUrl(): string {
   if (envUrlRaw && envUrlRaw.length > 0) {
