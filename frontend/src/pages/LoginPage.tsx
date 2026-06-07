@@ -57,14 +57,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 via-white to-slate-100 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 via-white to-red-50 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-xl font-bold text-white shadow-lg">
-            A
+            P
           </div>
           <h1 className="text-2xl font-semibold text-slate-900">
-            AmigoJoLive
+            ProfeConnect
           </h1>
           <p className="text-sm text-slate-600">
             Red pedagógica de docentes Fe y Alegría
@@ -73,7 +73,7 @@ export default function LoginPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl bg-white p-8 shadow-xl ring-1 ring-slate-200"
+          className="rounded-2xl bg-white p-8 shadow-xl ring-1 ring-red-100"
         >
           <h2 className="mb-6 text-lg font-semibold text-slate-900">
             Iniciar sesión
@@ -116,7 +116,7 @@ export default function LoginPage() {
             ¿Eres docente nuevo?{' '}
             <Link
               to="/register"
-              className="font-medium text-brand-700 hover:text-brand-800"
+              className="font-medium text-brand-600 hover:text-brand-700"
             >
               Solicita tu registro
             </Link>

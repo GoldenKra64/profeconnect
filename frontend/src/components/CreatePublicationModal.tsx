@@ -154,8 +154,8 @@ export default function CreatePublicationModal({
                     onClick={() => toggleTag(cat.id)}
                     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border transition-colors ${
                       selected
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400 hover:text-blue-600'
+                        ? 'bg-brand-600 text-white border-brand-600'
+                        : 'bg-white text-slate-600 border-slate-300 hover:border-brand-400 hover:text-brand-600'
                     }`}
                   >
                     {cat.name}
@@ -180,7 +180,7 @@ export default function CreatePublicationModal({
             multiple
             onChange={handleFileChange}
             accept=".jpg,.jpeg,.png,.pdf,.xls,.xlsx"
-            className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
+            className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 transition-colors"
             disabled={loading}
           />
           {fileError && (
@@ -209,7 +209,7 @@ export default function CreatePublicationModal({
             type="checkbox"
             checked={isAnonymous}
             onChange={(e) => setIsAnonymous(e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
             disabled={loading}
           />
           <span className="text-sm text-slate-700">Publicar como anónimo</span>

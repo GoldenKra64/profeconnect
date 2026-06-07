@@ -3,14 +3,17 @@ import { getPublications } from '../api/publication.service';
 import { getCategories, type Category } from '../api/category.service';
 import type { Publication } from '../types';
 import PublicationCard from '../components/PublicationCard';
-import CreatePublicationModal from '../components/CreatePublicationModal';
 import Button from '../components/Button';
+import {
+  PUBLICATION_CREATED_EVENT,
+  useCreatePublication,
+} from '../context/CreatePublicationContext';
 
 export default function FeedPage() {
+  const { openCreatePublication } = useCreatePublication();
   const [publications, setPublications] = useState<Publication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
@@ -32,9 +35,8 @@ export default function FeedPage() {
         setPublications(data.items);
       } else {
         setPublications((prev) => {
-          // Avoid duplicates if called twice quickly
-          const existingIds = new Set(prev.map(p => p.id));
-          const newItems = data.items.filter(p => !existingIds.has(p.id));
+          const existingIds = new Set(prev.map((p) => p.id));
+          const newItems = data.items.filter((p) => !existingIds.has(p.id));
           return [...prev, ...newItems];
         });
       }
@@ -50,6 +52,15 @@ export default function FeedPage() {
   useEffect(() => {
     setPage(1);
     fetchPublications(selectedTagIds, 1);
+  }, [selectedTagIds, fetchPublications]);
+
+  useEffect(() => {
+    const handler = () => {
+      setPage(1);
+      fetchPublications(selectedTagIds, 1);
+    };
+    window.addEventListener(PUBLICATION_CREATED_EVENT, handler);
+    return () => window.removeEventListener(PUBLICATION_CREATED_EVENT, handler);
   }, [selectedTagIds, fetchPublications]);
 
   const handleLoadMore = () => {
@@ -69,17 +80,22 @@ export default function FeedPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <h1 className="text-2xl font-bold text-slate-900">Feed de Publicaciones</h1>
-          <Button onClick={() => setIsModalOpen(true)}>
-            + Nueva Publicación
+      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-red-100">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h1 className="text-2xl font-bold text-slate-900">
+            Feed de Publicaciones
+          </h1>
+          <Button
+            className="hidden md:inline-flex"
+            onClick={openCreatePublication}
+          >
+            + Crear Publicación
           </Button>
         </div>
 
         {availableCategories.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Filtrar por:
             </span>
             {availableCategories.map((cat) => {
@@ -89,10 +105,10 @@ export default function FeedPage() {
                   key={cat.id}
                   type="button"
                   onClick={() => toggleTag(cat.id)}
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border transition-colors ${
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
                     active
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400 hover:text-blue-600'
+                      ? 'border-brand-600 bg-brand-600 text-white'
+                      : 'border-slate-300 bg-white text-slate-600 hover:border-brand-400 hover:text-brand-600'
                   }`}
                 >
                   {cat.name}
@@ -103,7 +119,7 @@ export default function FeedPage() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-xs text-slate-400 hover:text-red-500 underline transition-colors"
+                className="text-xs text-slate-400 underline transition-colors hover:text-brand-600"
               >
                 Limpiar filtros
               </button>
@@ -134,22 +150,13 @@ export default function FeedPage() {
         )}
 
         {hasMore && (
-          <div className="flex justify-center mt-4">
+          <div className="mt-4 flex justify-center">
             <Button onClick={handleLoadMore} disabled={isLoading}>
               {isLoading ? 'Cargando...' : 'Cargar más'}
             </Button>
           </div>
         )}
       </div>
-
-      <CreatePublicationModal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          setPage(1);
-          fetchPublications(selectedTagIds, 1);
-        }}
-      />
     </div>
   );
 }
