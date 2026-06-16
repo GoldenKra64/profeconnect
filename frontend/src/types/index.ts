@@ -199,3 +199,23 @@ export interface SecurityIncident {
   };
   postId?: number;
 }
+
+export interface PlatformReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  userId: number | null;
+  createdAt: string;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    institutionalEmail: string;
+  } | null;
+}
+
+export interface PlatformReviewListResponse {
+  reviews: PlatformReview[];
+  averageRating: number;
+  totalCount: number;
+}

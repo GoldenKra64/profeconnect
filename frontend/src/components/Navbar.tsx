@@ -14,6 +14,7 @@ const ADMIN_MANAGEMENT_LINKS = [
   { to: '/admin/usuarios', label: 'Usuarios' },
   { to: '/admin/solicitudes', label: 'Solicitudes' },
   { to: '/admin/incidentes', label: 'Incidentes' },
+  { to: '/admin/reviews', label: 'Reseñas' },
 ] as const;
 
 const MODERATOR_MANAGEMENT_LINKS = [

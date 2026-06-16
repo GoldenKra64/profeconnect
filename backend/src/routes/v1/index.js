@@ -13,6 +13,10 @@ const categoryRoutes = require("../../modules/category/category.routes");
 const incidentRoutes = require("../../modules/incidents/incident.routes");
 
 const reportsRoutes = require("../../modules/reports/reports.routes");
+const {
+  userRouter: reviewUserRoutes,
+  adminRouter: reviewAdminRoutes,
+} = require("../../modules/reviews/review.routes");
 
 const prisma = require("../../lib/prisma");
 
@@ -40,6 +44,8 @@ router.use("/publications", publicationRoutes);
 router.use("/comments", commentRoutes);
 
 router.use("/reports", reportsRoutes);
+router.use("/reviews", reviewUserRoutes);
+router.use("/admin/reviews", reviewAdminRoutes);
 
 // Chatbot
 router.use("/chatbot", chatbotRoutes);

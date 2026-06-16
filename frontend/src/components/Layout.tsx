@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
+import FloatingOnboardingTips from './FloatingOnboardingTips';
 import { CreatePublicationProvider, useCreatePublication } from '../context/CreatePublicationContext';
 
 function FloatingCreateButton() {
@@ -24,6 +25,7 @@ function LayoutContent() {
       <main className="mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-8">
         <Outlet />
       </main>
+      <FloatingOnboardingTips />
       <FloatingCreateButton />
     </div>
   );

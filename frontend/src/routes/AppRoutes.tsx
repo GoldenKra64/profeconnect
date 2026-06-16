@@ -13,6 +13,7 @@ import FeedPage from '../pages/FeedPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import AdminRequestsPage from '../pages/AdminRequestsPage';
 import AdminIncidentsPage from '../pages/AdminIncidentsPage';
+import AdminReviewsPage from '../pages/AdminReviewsPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import PublicOnlyRoute from './PublicOnlyRoute';
 
@@ -35,6 +36,7 @@ export default function AppRoutes() {
 
           <Route element={<RoleRoute allow={['admin']} />}>
             <Route path="/admin/usuarios" element={<AdminUsersPage />} />
+            <Route path="/admin/reviews" element={<AdminReviewsPage />} />
           </Route>
 
           <Route element={<RoleRoute allow={['admin', 'moderador']} />}>

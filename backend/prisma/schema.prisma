@@ -73,6 +73,7 @@ model User {
 
   reviewedRegistrationRequests RegistrationRequest[] @relation("ReviewedRegistrationRequests")
   securityIncidents  SecurityIncident[]
+  platformReviews    PlatformReview[]
 
   lastLoginAt        DateTime?
   createdAt          DateTime   @default(now())
@@ -254,4 +255,15 @@ model SecurityIncident {
   createdAt     DateTime @default(now())
 
   @@map("incidentes_seguridad")
+}
+
+model PlatformReview {
+  id        String   @id @default(uuid()) @db.Uuid
+  rating    Int
+  comment   String?
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("reseñas_plataforma")
 }
