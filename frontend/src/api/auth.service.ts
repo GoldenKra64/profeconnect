@@ -4,6 +4,7 @@ import type {
   LoginPayload,
   LoginResponse,
   MeResponse,
+  RegisterInstitutionalPayload,
   RegisterRequestPayload,
   RegistrationRequest,
 } from '../types';
@@ -31,6 +32,24 @@ export async function registerRequest(
   const response = await apiClient.post<ApiResponse<RegistrationRequest>>(
     '/auth/register-request',
     formData
+  );
+  return response.data.data;
+}
+
+export async function registerInstitutional(
+  payload: RegisterInstitutionalPayload
+): Promise<RegistrationRequest> {
+  const response = await apiClient.post<ApiResponse<RegistrationRequest>>(
+    '/auth/register-institutional',
+    payload
+  );
+  return response.data.data;
+}
+
+export async function verifyEmail(token: string): Promise<MeResponse> {
+  const response = await apiClient.post<ApiResponse<MeResponse>>(
+    '/auth/verify-email',
+    { token }
   );
   return response.data.data;
 }

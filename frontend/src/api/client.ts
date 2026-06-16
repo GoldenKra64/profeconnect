@@ -37,7 +37,9 @@ apiClient.interceptors.request.use((config) => {
   const path = `${config.baseURL ?? ''}${config.url ?? ''}`;
   const isPublicAuth =
     path.includes('/auth/login') ||
-    path.includes('/auth/register-request');
+    path.includes('/auth/register-request') ||
+    path.includes('/auth/register-institutional') ||
+    path.includes('/auth/verify-email');
 
   config.headers = config.headers ?? {};
 

@@ -4,6 +4,8 @@ export type UserStatus = 'ACTIVO' | 'INACTIVO' | 'PENDIENTE' | 'BLOQUEADO';
 
 export type RegistrationRequestStatus = 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
 
+export type RegistrationRequestMethod = 'CEDULA' | 'INSTITUTIONAL_EMAIL';
+
 export interface TeacherProfile {
   id: number;
   userId: number;
@@ -55,6 +57,9 @@ export interface RegistrationRequest {
   cedulaPhotoName: string | null;
   area: string | null;
   description: string | null;
+  method?: RegistrationRequestMethod;
+  emailVerifiedAt?: string | null;
+  verificationSentAt?: string | null;
   status: RegistrationRequestStatus;
   reviewComment: string | null;
   reviewedAt: string | null;
@@ -84,6 +89,15 @@ export interface RegisterRequestPayload {
   firstName: string;
   lastName: string;
   cedulaPhoto: File;
+  area?: string;
+  description?: string;
+}
+
+export interface RegisterInstitutionalPayload {
+  institutionalEmail: string;
+  password: string;
+  firstName: string;
+  lastName: string;
   area?: string;
   description?: string;
 }

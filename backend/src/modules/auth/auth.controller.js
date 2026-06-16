@@ -45,6 +45,30 @@ async function registerRequest(req, res, next) {
   }
 }
 
+async function registerInstitutional(req, res, next) {
+  try {
+    const request = await authService.createInstitutionalRegistrationRequest(req.body);
+
+    const apiResponse = new ApiResponse(true, 201, "Solicitud enviada. Revisa tu correo institucional para verificar la cuenta.", request);
+
+    return res.status(201).json(apiResponse);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function verifyEmail(req, res, next) {
+  try {
+    const user = await authService.verifyInstitutionalEmail(req.body.token);
+
+    const apiResponse = new ApiResponse(true, 200, "Correo institucional verificado. Tu cuenta fue activada correctamente.", user);
+
+    return res.status(200).json(apiResponse);
+  } catch (error) {
+    next(error);
+  }
+}
+
 /**
  * Login de usuario
  */
@@ -81,6 +105,8 @@ async function me(req, res, next) {
 
 module.exports = {
   registerRequest,
+  registerInstitutional,
+  verifyEmail,
   login,
   me,
 };
