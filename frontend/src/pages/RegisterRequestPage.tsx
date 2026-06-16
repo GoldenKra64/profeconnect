@@ -4,7 +4,9 @@ import Button from '../components/Button';
 import Field from '../components/Field';
 import { useToast } from '../components/Toast';
 import { extractErrorMessage } from '../api/client';
-import { registerRequest } from '../api/auth.service';
+import { registerInstitutional, registerRequest } from '../api/auth.service';
+
+type RegisterMode = 'CEDULA' | 'INSTITUTIONAL_EMAIL';
 
 interface FormState {
   firstName: string;
@@ -29,6 +31,7 @@ const initialState: FormState = {
 export default function RegisterRequestPage() {
   const navigate = useNavigate();
   const toast = useToast();
+  const [mode, setMode] = useState<RegisterMode>('CEDULA');
   const [form, setForm] = useState<FormState>(initialState);
   const [cedulaPhoto, setCedulaPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -65,16 +68,16 @@ export default function RegisterRequestPage() {
       !form.institutionalEmail.trim() ||
       !form.institutionalEmail.includes('@')
     ) {
-      next.institutionalEmail = 'Correo institucional inválido';
+      next.institutionalEmail = 'Correo institucional invalido';
     }
-    if (!cedulaPhoto) {
-      next.cedulaPhoto = 'Debe adjuntar una foto de su cédula';
+    if (mode === 'CEDULA' && !cedulaPhoto) {
+      next.cedulaPhoto = 'Debe adjuntar una foto de su cedula';
     }
     if (form.password.length < 8) {
-      next.password = 'Mínimo 8 caracteres';
+      next.password = 'Minimo 8 caracteres';
     }
     if (form.password !== form.passwordConfirm) {
-      next.passwordConfirm = 'Las contraseñas no coinciden';
+      next.passwordConfirm = 'Las contrasenas no coinciden';
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -82,22 +85,35 @@ export default function RegisterRequestPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!validate() || !cedulaPhoto) return;
+    if (!validate()) return;
 
     setSubmitting(true);
     try {
-      await registerRequest({
+      const payload = {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         institutionalEmail: form.institutionalEmail.trim(),
         password: form.password,
-        cedulaPhoto,
         area: form.area.trim() || undefined,
         description: form.description.trim() || undefined,
-      });
-      toast.success(
-        'Solicitud enviada. Un administrador la revisará en breve.'
-      );
+      };
+
+      if (mode === 'CEDULA') {
+        if (!cedulaPhoto) return;
+        await registerRequest({
+          ...payload,
+          cedulaPhoto,
+        });
+        toast.success(
+          'Solicitud enviada. Un administrador la revisara en breve.'
+        );
+      } else {
+        await registerInstitutional(payload);
+        toast.success(
+          'Solicitud enviada. Revisa tu correo institucional para verificar la cuenta.'
+        );
+      }
+
       navigate('/login', { replace: true });
     } catch (error) {
       toast.error(
@@ -119,7 +135,7 @@ export default function RegisterRequestPage() {
             Solicitud de registro
           </h1>
           <p className="text-sm text-slate-600">
-            Completa tus datos. Un administrador revisará y aprobará tu acceso.
+            Completa tus datos y elige el metodo de validacion.
           </p>
         </div>
 
@@ -127,6 +143,31 @@ export default function RegisterRequestPage() {
           onSubmit={handleSubmit}
           className="rounded-2xl bg-white p-8 shadow-xl ring-1 ring-slate-200"
         >
+          <div className="mb-6 grid grid-cols-1 gap-2 rounded-xl bg-slate-100 p-1 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setMode('CEDULA')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                mode === 'CEDULA'
+                  ? 'bg-white text-brand-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Solicitud con cedula
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('INSTITUTIONAL_EMAIL')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                mode === 'INSTITUTIONAL_EMAIL'
+                  ? 'bg-white text-brand-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Correo institucional
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field
               label="Nombres"
@@ -154,18 +195,18 @@ export default function RegisterRequestPage() {
               value={form.institutionalEmail}
               onChange={(e) => update('institutionalEmail', e.target.value)}
               error={errors.institutionalEmail}
-              hint="Será tu usuario para iniciar sesión"
+              hint="Sera tu usuario para iniciar sesion"
             />
             <Field
-              label="Área pedagógica"
+              label="Area pedagogica"
               name="area"
-              placeholder="Matemáticas, Lengua, Ciencias..."
+              placeholder="Matematicas, Lengua, Ciencias..."
               value={form.area}
               onChange={(e) => update('area', e.target.value)}
               error={errors.area}
             />
             <Field
-              label="Contraseña"
+              label="Contrasena"
               name="password"
               type="password"
               autoComplete="new-password"
@@ -173,10 +214,10 @@ export default function RegisterRequestPage() {
               value={form.password}
               onChange={(e) => update('password', e.target.value)}
               error={errors.password}
-              hint="Mínimo 8 caracteres"
+              hint="Minimo 8 caracteres"
             />
             <Field
-              label="Confirmar contraseña"
+              label="Confirmar contrasena"
               name="passwordConfirm"
               type="password"
               autoComplete="new-password"
@@ -187,41 +228,43 @@ export default function RegisterRequestPage() {
             />
           </div>
 
-          <div className="mt-4">
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              Foto de cédula <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="file"
-              onChange={handlePhotoChange}
-              className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100"
-            />
-            <p className="mt-1 text-xs text-slate-500">
-              Acepta cualquier formato (imagen, PDF, etc.)
-            </p>
-            {errors.cedulaPhoto && (
-              <p className="mt-1 text-sm text-red-600">{errors.cedulaPhoto}</p>
-            )}
-            {cedulaPhoto && !photoPreview && (
-              <p className="mt-2 text-sm text-slate-600">
-                Archivo seleccionado: {cedulaPhoto.name}
-              </p>
-            )}
-            {photoPreview && (
-              <img
-                src={photoPreview}
-                alt="Vista previa de cédula"
-                className="mt-3 max-h-48 rounded-lg border border-slate-200 object-contain"
+          {mode === 'CEDULA' && (
+            <div className="mt-4">
+              <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                Foto de cedula <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="file"
+                onChange={handlePhotoChange}
+                className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100"
               />
-            )}
-          </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Acepta cualquier formato permitido por el sistema.
+              </p>
+              {errors.cedulaPhoto && (
+                <p className="mt-1 text-sm text-red-600">{errors.cedulaPhoto}</p>
+              )}
+              {cedulaPhoto && !photoPreview && (
+                <p className="mt-2 text-sm text-slate-600">
+                  Archivo seleccionado: {cedulaPhoto.name}
+                </p>
+              )}
+              {photoPreview && (
+                <img
+                  src={photoPreview}
+                  alt="Vista previa de cedula"
+                  className="mt-3 max-h-48 rounded-lg border border-slate-200 object-contain"
+                />
+              )}
+            </div>
+          )}
 
           <div className="mt-4">
             <Field
               as="textarea"
-              label="Descripción / experiencia (opcional)"
+              label="Descripcion / experiencia (opcional)"
               name="description"
-              placeholder="Cuéntanos brevemente sobre tu trayectoria docente"
+              placeholder="Cuentanos brevemente sobre tu trayectoria docente"
               value={form.description}
               onChange={(e) => update('description', e.target.value)}
               error={errors.description}
@@ -233,10 +276,10 @@ export default function RegisterRequestPage() {
               to="/login"
               className="text-sm font-medium text-brand-700 hover:text-brand-800"
             >
-              ← Volver a iniciar sesión
+              Volver a iniciar sesion
             </Link>
             <Button type="submit" size="lg" loading={submitting}>
-              Enviar solicitud
+              {mode === 'CEDULA' ? 'Enviar solicitud' : 'Enviar verificacion'}
             </Button>
           </div>
         </form>

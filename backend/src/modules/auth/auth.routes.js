@@ -2,7 +2,11 @@ const express = require("express");
 const authController = require("./auth.controller");
 const authMiddleware = require("../../middlewares/auth.middleware");
 const validateDto = require("../../middlewares/validate.middleware");
-const { loginDto } = require("./auth.dto");
+const {
+  createRegistrationRequestDto,
+  loginDto,
+  verifyEmailDto,
+} = require("./auth.dto");
 const {
   cedulaUpload,
   attachCedulaPhotoMeta,
@@ -18,6 +22,12 @@ router.post(
   validateRegistrationRequest,
   authController.registerRequest
 );
+router.post(
+  "/register-institutional",
+  validateDto(createRegistrationRequestDto),
+  authController.registerInstitutional
+);
+router.post("/verify-email", validateDto(verifyEmailDto), authController.verifyEmail);
 router.post("/login", validateDto(loginDto), authController.login);
 router.get("/me", authMiddleware, authController.me);
 

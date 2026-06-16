@@ -46,7 +46,15 @@ const loginDto = z.object({
     .min(1, "Contraseña obligatoria"),
 });
 
+const verifyEmailDto = z.object({
+  token: z
+    .string()
+    .trim()
+    .min(1, "Token de verificacion requerido"),
+});
+
 module.exports = {
   createRegistrationRequestDto,
   loginDto,
+  verifyEmailDto,
 };

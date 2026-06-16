@@ -5,6 +5,7 @@ import Layout from '../components/Layout';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import RegisterRequestPage from '../pages/RegisterRequestPage';
+import VerifyEmailPage from '../pages/VerifyEmailPage';
 import DashboardPage from '../pages/DashboardPage';
 import ProfilePage from '../pages/ProfilePage';
 import ChatbotPage from '../pages/ChatbotPage';
@@ -22,6 +23,7 @@ export default function AppRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterRequestPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
       </Route>
 
       <Route element={<ProtectedRoute />}>

@@ -25,6 +25,11 @@ enum RegistrationRequestStatus {
   RECHAZADA
 }
 
+enum RegistrationRequestMethod {
+  CEDULA
+  INSTITUTIONAL_EMAIL
+}
+
 enum ReactionType {
   LIKE
   USEFUL
@@ -211,7 +216,12 @@ model RegistrationRequest {
   area               String?
   description        String?
 
+  method             RegistrationRequestMethod @default(CEDULA)
   status             RegistrationRequestStatus @default(PENDIENTE)
+  emailVerifiedAt    DateTime?
+  verificationTokenHash String?
+  verificationTokenExpiresAt DateTime?
+  verificationSentAt DateTime?
 
   reviewedById       Int?
   reviewedBy         User?                     @relation("ReviewedRegistrationRequests", fields: [reviewedById], references: [id])
@@ -224,6 +234,7 @@ model RegistrationRequest {
 
   @@index([institutionalEmail])
   @@index([status])
+  @@index([verificationTokenHash])
 
   @@map("solicitudes_registro")
 }

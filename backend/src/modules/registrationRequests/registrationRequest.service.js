@@ -4,10 +4,15 @@ const {
   isStorageUri,
   downloadStorageFile,
 } = require("../../lib/storage");
+const {
+  createTeacherFromRegistrationRequest,
+  serializeUser,
+} = require("../auth/auth.service");
+const {
+  sendRegistrationApprovedEmail,
+  sendRegistrationRejectedEmail,
+} = require("../../lib/email");
 
-/***
- * Obtener todas las solicitudes de registro pendientes por aprobar -- SOLO MODERADOR
- */
 async function getRegistrationRequests(status) {
   const where = {};
 
@@ -41,6 +46,9 @@ async function getRegistrationRequests(status) {
     cedulaPhotoName: request.cedulaPhotoName,
     area: request.area,
     description: request.description,
+    method: request.method,
+    emailVerifiedAt: request.emailVerifiedAt,
+    verificationSentAt: request.verificationSentAt,
     status: request.status,
     reviewComment: request.reviewComment,
     reviewedAt: request.reviewedAt,
@@ -54,7 +62,7 @@ async function getRegistrationRequestCedulaPhoto(requestId) {
   const id = Number(requestId);
 
   if (Number.isNaN(id)) {
-    const error = new Error("ID de solicitud no válido");
+    const error = new Error("ID de solicitud no valido");
     error.statusCode = 400;
     throw error;
   }
@@ -69,7 +77,7 @@ async function getRegistrationRequestCedulaPhoto(requestId) {
   });
 
   if (!request?.cedulaPhotoPath) {
-    const error = new Error("Foto de cédula no encontrada");
+    const error = new Error("Foto de cedula no encontrada");
     error.statusCode = 404;
     throw error;
   }
@@ -86,19 +94,16 @@ async function getRegistrationRequestCedulaPhoto(requestId) {
   };
 }
 
-/***
- * Aprobar solicitud de registro -- SOLO MODERADOR
- */
 async function approveRegistrationRequest(requestId, adminUserId) {
   const id = Number(requestId);
 
   if (Number.isNaN(id)) {
-    const error = new Error("ID de solicitud no válido");
+    const error = new Error("ID de solicitud no valido");
     error.statusCode = 400;
     throw error;
   }
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const request = await tx.registrationRequest.findUnique({
       where: { id },
     });
@@ -115,90 +120,32 @@ async function approveRegistrationRequest(requestId, adminUserId) {
       throw error;
     }
 
-    const existingUser = await tx.user.findUnique({
-      where: {
-        institutionalEmail: request.institutionalEmail,
-      },
-    });
-
-    if (existingUser) {
-      const error = new Error("Ya existe un usuario con este correo");
-      error.statusCode = 409;
-      throw error;
-    }
-
-    const teacherRole = await tx.role.findUnique({
-      where: {
-        name: "docente",
-      },
-    });
-
-    if (!teacherRole || !teacherRole.active) {
-      const error = new Error("Rol docente no encontrado o inactivo");
-      error.statusCode = 500;
-      throw error;
-    }
-
-    if (!request.passwordHash) {
-      const error = new Error("La solicitud no tiene contraseña válida");
+    if (request.method === "INSTITUTIONAL_EMAIL") {
+      const error = new Error("Las solicitudes institucionales se aprueban verificando el correo");
       error.statusCode = 400;
       throw error;
     }
 
-    const user = await tx.user.create({
-      data: {
-        institutionalEmail: request.institutionalEmail,
-        passwordHash: request.passwordHash,
-        firstName: request.firstName,
-        lastName: request.lastName,
-        cedulaPhotoPath: request.cedulaPhotoPath,
-        cedulaPhotoMime: request.cedulaPhotoMime,
-        cedulaPhotoName: request.cedulaPhotoName,
-        status: "ACTIVO",
-        roleId: teacherRole.id,
-        teacherProfile: {
-          create: {
-            area: request.area,
-            description: request.description,
-          },
-        },
-      },
-      include: {
-        role: true,
-        teacherProfile: true,
-      },
+    return createTeacherFromRegistrationRequest(tx, request, {
+      reviewedById: adminUserId,
+      reviewedAt: new Date(),
     });
-
-    await tx.registrationRequest.update({
-      where: { id },
-      data: {
-        status: "APROBADA",
-        reviewedById: adminUserId,
-        reviewedAt: new Date(),
-        reviewComment: "Solicitud aprobada",
-      },
-    });
-
-    return {
-      id: user.id,
-      institutionalEmail: user.institutionalEmail,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      status: user.status,
-      role: user.role.name,
-      profile: user.teacherProfile,
-    };
   });
+
+  try {
+    await sendRegistrationApprovedEmail(result.request);
+  } catch (emailError) {
+    console.warn("No se pudo enviar correo de solicitud aprobada", emailError.message);
+  }
+
+  return serializeUser(result.user);
 }
 
-/***
- * Eliminar solicitud de registro -- SOLO MODERADOR
- */
 async function rejectRegistrationRequest(requestId, adminUserId, reviewComment) {
   const id = Number(requestId);
 
   if (Number.isNaN(id)) {
-    const error = new Error("ID de solicitud no válido");
+    const error = new Error("ID de solicitud no valido");
     error.statusCode = 400;
     throw error;
   }
@@ -227,6 +174,8 @@ async function rejectRegistrationRequest(requestId, adminUserId, reviewComment) 
       reviewedAt: new Date(),
       reviewComment: reviewComment || "Solicitud rechazada",
       passwordHash: null,
+      verificationTokenHash: null,
+      verificationTokenExpiresAt: null,
     },
     select: {
       id: true,
@@ -236,8 +185,15 @@ async function rejectRegistrationRequest(requestId, adminUserId, reviewComment) 
       status: true,
       reviewComment: true,
       reviewedAt: true,
+      method: true,
     },
   });
+
+  try {
+    await sendRegistrationRejectedEmail(updatedRequest);
+  } catch (emailError) {
+    console.warn("No se pudo enviar correo de solicitud rechazada", emailError.message);
+  }
 
   return updatedRequest;
 }

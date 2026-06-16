@@ -39,6 +39,12 @@ function formatDate(value: string | null) {
   }
 }
 
+function formatMethod(request: RegistrationRequest) {
+  return request.method === 'INSTITUTIONAL_EMAIL'
+    ? 'Correo institucional'
+    : 'Cedula';
+}
+
 export default function AdminRequestsPage() {
   const toast = useToast();
   const { user } = useAuth();
@@ -192,6 +198,9 @@ export default function AdminRequestsPage() {
                   <p className="text-sm text-slate-600">
                     {req.institutionalEmail}
                   </p>
+                  <p className="mt-1 text-xs font-medium text-slate-500">
+                    Metodo: {formatMethod(req)}
+                  </p>
                   {req.hasCedulaPhoto && (
                     <button
                       type="button"
@@ -218,6 +227,11 @@ export default function AdminRequestsPage() {
                     <span>Solicitada: {formatDate(req.createdAt)}</span>
                     {req.reviewedAt && (
                       <span>Revisada: {formatDate(req.reviewedAt)}</span>
+                    )}
+                    {req.emailVerifiedAt && (
+                      <span>
+                        Correo verificado: {formatDate(req.emailVerifiedAt)}
+                      </span>
                     )}
                     {req.reviewedBy && (
                       <span>
