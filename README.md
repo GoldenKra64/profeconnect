@@ -1,4 +1,4 @@
-## AmigojoLive: Red Pedagógica para Docentes
+## ProfeConnect: Red Pedagógica para Docentes
 
 ## 1. Descripción del Proyecto
 AmigojoLive es una plataforma colaborativa diseñada como un espacio seguro y exclusivo para los docentes de la red educativa Fe y Alegría. El objetivo principal es permitir que los profesores compartan recursos pedagógicos, experiencias de aula, consejos y frustraciones de manera profesional o anónima, fomentando el aprendizaje entre pares y el crecimiento comunitario.
