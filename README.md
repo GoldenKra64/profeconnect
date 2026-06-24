@@ -267,32 +267,8 @@ Luego volver a aplicar migraciones y seed.
 
 ---
 
-## 9. Despliegue en producción (Railway)
 
-El proyecto está desplegado en [Railway](https://railway.app) con dos servicios:
-
-| Servicio | URL |
-|----------|-----|
-| Frontend | [https://profeconnect.up.railway.app](https://profeconnect.up.railway.app) |
-| Backend | `https://profeconnect-backend.up.railway.app` |
-
-Las variables de entorno de producción se configuran directamente en el panel de Railway. No se usan archivos `.env` en el servidor.
-
-El comando de build configurado en `render.yaml` / Railway es:
-
-```bash
-npm run build
-```
-
-Y el de inicio:
-
-```bash
-npm run start
-```
-
----
-
-## 10. Plan de pruebas
+## 9. Plan de pruebas
 
 | Tipo | Descripción |
 |------|-------------|
@@ -308,4 +284,7 @@ npm run start
 
 Proyecto desarrollado como plataforma colaborativa para la red educativa Fe y Alegría.
 
-- Grupo de desarrollo — **2026**
+- Angel Fonseca
+- Gabriel Vasconez
+- Francisco Miguez
+- Luis Alobuela
